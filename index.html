@@ -92,7 +92,17 @@
         .leaderboard {
             margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 15px;
         }
-        .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.05rem; text-align: center; color: #334155; }
+        .lb-header {
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            margin-bottom: 10px;
+        }
+        .lb-header h3 { margin: 0; font-size: 1.05rem; color: #334155; }
+        .refresh-btn {
+            padding: 5px 10px; font-size: 0.85rem; background: #f1f5f9;
+            border: 1px solid #cbd5e1; border-radius: 8px; color: #334155;
+        }
+        .refresh-btn:hover { background: #e2e8f0; }
+
         .lb-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
         .lb-table th { text-align: left; color: var(--muted); padding: 6px 8px; border-bottom: 2px solid #e2e8f0; }
         .lb-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
@@ -110,9 +120,9 @@
         }
         .footer-signature {
             margin-top: 22px; text-align: center; font-size: 0.85rem;
-            color: var(--muted); font-weight: 500;
+            color: var(--muted); font-weight: 500; user-select: none;
         }
-        .footer-signature span { color: #e11d48; }
+        .footer-signature span { color: #e11d48; cursor: pointer; padding: 4px; }
         .hidden { display: none; }
         @media (max-width: 480px) { .options { grid-template-columns: 1fr; } }
     </style>
@@ -152,7 +162,10 @@
         <button class="start-btn" onclick="startQuiz()">🚀 Почати змагання</button>
 
         <div class="leaderboard">
-            <h3 id="lb-title">🏆 Таблиця лідерів</h3>
+            <div class="lb-header">
+                <h3 id="lb-title">🏆 Таблиця лідерів</h3>
+                <button class="refresh-btn" onclick="renderLeaderboard(true)" title="Оновити результати">🔄 Оновити</button>
+            </div>
             <div id="lb-content">Завантаження...</div>
         </div>
     </div>
@@ -186,7 +199,7 @@
     </div>
 
     <div class="footer-signature">
-        Створено з любов'ю, тато Мар'ян К. <span>❤️</span>
+        Створено з любов'ю, тато Мар'ян К. <span id="secret-heart" onclick="handleHeartClick()">❤️</span>
     </div>
 </div>
 
@@ -437,34 +450,29 @@ function generateSmartWrongOptions(current, qMode, correctAns, key) {
         if (val && val !== correctAns && !traps.includes(val)) traps.push(val);
     };
 
-    // 1. Власна пастка елемента (наприклад, для Fe у речовинах підкласти "ферум", а для вимови Hg — "меркурій" та "ртуть")
     if (qMode === "name_to_sub" && current.name.toLowerCase() !== correctAns.toLowerCase()) {
         addTrap(current.name.toLowerCase());
     }
     if (qMode === "sym_to_read") {
         if (current.name.toLowerCase() !== correctAns.toLowerCase()) addTrap(current.name.toLowerCase());
         if (current.sub.toLowerCase() !== correctAns.toLowerCase()) addTrap(current.sub.toLowerCase());
-        // Якщо вимова коротка ("аш", "це", "ен", "о", "пе", "ес"), підкладаємо інші короткі вимови
         const shortReads = ["аш", "це", "ен", "о", "пе", "ес"];
         if (shortReads.includes(correctAns)) {
             shuffle(shortReads).forEach(r => addTrap(r));
         }
     }
 
-    // 2. Пастки зі списку візуально/фонетично схожих елементів-близнюків
     const similarSyms = shuffle(confusableMap[current.sym] || []);
     for (const sym of similarSyms) {
         const simEl = elements.find(e => e.sym === sym);
         if (simEl) addTrap(simEl[key]);
     }
 
-    // 3. Додатковий пошук за спільною першою літерою (якщо ще потрібно)
     const sameFirstLetter = shuffle(elements.filter(e => 
         e[key][0].toLowerCase() === correctAns[0].toLowerCase()
     ));
     sameFirstLetter.forEach(e => addTrap(e[key]));
 
-    // 4. Запасний варіант на випадок, якщо якихось не вистачило до 3
     const fallback = shuffle(elements.map(e => e[key]));
     fallback.forEach(val => addTrap(val));
 
@@ -563,7 +571,7 @@ async function fetchScores() {
     const key = getBoardKey();
     if (CLOUD_DB_URL) {
         try {
-            const res = await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`));
+            const res = await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`) + `?t=${Date.now()}`);
             const data = await res.json();
             return data ? Object.values(data) : [];
         } catch (e) { console.error(e); }
@@ -610,8 +618,11 @@ async function saveResult(name, newScore, total, newTime) {
     return msg;
 }
 
-async function renderLeaderboard() {
+async function renderLeaderboard(manualRefresh = false) {
     const container = document.getElementById("lb-content");
+    if (manualRefresh) {
+        container.innerHTML = `<div style="text-align:center;color:#64748b;padding:12px;">⏳ Оновлення даних...</div>`;
+    }
     let list = await fetchScores();
 
     if (list.length === 0) {
@@ -647,6 +658,32 @@ function resetSetup() {
     document.getElementById("result-screen").classList.add("hidden");
     document.getElementById("setup-screen").classList.remove("hidden");
     renderLeaderboard();
+}
+
+// --- СЕКРЕТНЕ МЕНЮ АДМІНІСТРАТОРА (3 швидкі кліки/тапи по сердечку ❤️) ---
+let heartClicks = 0;
+let heartTimer = null;
+
+async function handleHeartClick() {
+    heartClicks++;
+    clearTimeout(heartTimer);
+    heartTimer = setTimeout(() => { heartClicks = 0; }, 1000);
+
+    if (heartClicks >= 3) {
+        heartClicks = 0;
+        const pin = prompt("Секретне меню тата Мар'яна 🛠️\nВведіть 404, щоб очистити поточну таблицю лідерів:");
+        if (pin === "404") {
+            const key = getBoardKey();
+            localStorage.removeItem(key);
+            if (CLOUD_DB_URL) {
+                try {
+                    await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), { method: "DELETE" });
+                } catch (e) { console.error(e); }
+            }
+            renderLeaderboard();
+            alert("✅ Таблицю лідерів для цього режиму успішно очищено!");
+        }
+    }
 }
 </script>
 </body>
