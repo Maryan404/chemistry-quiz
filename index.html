@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хімічний Турнір • 34 елементи</title>
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --card: #ffffff;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --text: #1e293b;
+            --muted: #64748b;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body {
+            margin: 0; padding: 16px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f4f8 100%);
+            color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: var(--card); width: 100%; max-width: 580px;
+            padding: 26px; border-radius: 22px;
+            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.1);
+            position: relative;
+        }
+        .sound-toggle {
+            position: absolute; top: 18px; right: 18px;
+            background: #f1f5f9; border: 1.5px solid #cbd5e1;
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; cursor: pointer; transition: 0.2s;
+            padding: 0;
+        }
+        .sound-toggle:hover { background: #e2e8f0; transform: scale(1.06); }
+        .sound-toggle.muted { opacity: 0.6; background: #fee2e2; border-color: #fca5a5; }
+
+        h1 { font-size: 1.6rem; margin: 0 0 6px 0; text-align: center; color: var(--primary); padding: 0 36px; }
+        .subtitle { text-align: center; color: var(--muted); font-size: 0.92rem; margin-bottom: 18px; }
+        
+        .controls {
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px;
+            background: #f8fafc; padding: 16px; border-radius: 14px; border: 1px solid #e2e8f0;
+        }
+        label { font-size: 0.92rem; font-weight: 600; color: #334155; }
+        input[type="text"], select {
+            width: 100%; padding: 12px 14px; border-radius: 10px;
+            border: 1.5px solid #cbd5e1; font-size: 1rem; outline: none; transition: 0.2s;
+        }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+        
+        .checkbox-label {
+            display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+        }
+        
+        button {
+            padding: 13px; border-radius: 12px; border: none;
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .start-btn, .next-btn { width: 100%; background: var(--primary); color: white; }
+        .start-btn:hover, .next-btn:hover { background: var(--primary-hover); }
+        
+        .stats {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.95rem; color: var(--muted); margin-bottom: 14px; font-weight: 700;
+            background: #f8fafc; padding: 10px 14px; border-radius: 10px;
+        }
+        .timer-badge { color: var(--primary); font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+        
+        .question-box {
+            text-align: center; padding: 26px 15px; margin-bottom: 18px;
+            background: #eff6ff; border-radius: 16px; border: 2px solid #bfdbfe;
+        }
+        .question-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 8px; }
+        .question-main { font-size: 2.3rem; font-weight: 800; color: var(--primary); }
+        
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .option-btn {
+            background: #ffffff; border: 2px solid #e2e8f0; padding: 15px 10px;
+            font-size: 1.05rem; font-weight: 600; color: var(--text); border-radius: 12px;
+        }
+        .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #f8fafc; }
+        .option-btn.correct { background: #dcfce7; border-color: var(--success); color: #14532d; transform: scale(1.02); }
+        .option-btn.wrong { background: #fee2e2; border-color: var(--danger); color: #7f1d1d; }
+        
+        .leaderboard {
+            margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 15px;
+        }
+        .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.05rem; text-align: center; color: #334155; }
+        .lb-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        .lb-table th { text-align: left; color: var(--muted); padding: 6px 8px; border-bottom: 2px solid #e2e8f0; }
+        .lb-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+        .lb-table tr:nth-child(1) td { font-weight: 700; color: #b45309; background: #fffbeb; }
+        .badge-attempts {
+            background: #e2e8f0; color: #475569; padding: 2px 6px;
+            border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+        }
+        
+        .score-big { font-size: 2.6rem; font-weight: 800; color: var(--primary); margin: 6px 0; text-align: center; }
+        .time-result { text-align: center; color: var(--muted); font-weight: 600; margin-bottom: 12px; }
+        .mistakes-list {
+            text-align: left; background: #fff1f2; padding: 12px;
+            border-radius: 12px; margin: 12px 0; max-height: 190px; overflow-y: auto; font-size: 0.9rem;
+        }
+        .footer-signature {
+            margin-top: 22px; text-align: center; font-size: 0.85rem;
+            color: var(--muted); font-weight: 500;
+        }
+        .footer-signature span { color: #e11d48; }
+        .hidden { display: none; }
+        @media (max-width: 480px) { .options { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button id="sound-btn" class="sound-toggle" onclick="toggleSound()" title="Увімкнути/вимкнути звук">🔊</button>
+    <h1>🧪 Хімічний Турнір</h1>
+    <div class="subtitle">Перевір себе та позмагайся з однокласниками!</div>
+
+    <!-- СТАРТОВИЙ ЕКРАН -->
+    <div id="setup-screen">
+        <div class="controls">
+            <div>
+                <label for="player-name">Твоє ім'я або нікнейм:</label>
+                <input type="text" id="player-name" placeholder="Наприклад: Софія" maxlength="25">
+            </div>
+
+            <div>
+                <label for="mode-select">Режим гри:</label>
+                <select id="mode-select" onchange="renderLeaderboard()">
+                    <option value="all_mix">🔥 Супер-мікс (усі питання)</option>
+                    <option value="name_to_sym">Назва елемента ➔ Символ (Гідроген ➔ H)</option>
+                    <option value="sym_to_name">Символ ➔ Назва елемента (Fe ➔ Ферум)</option>
+                    <option value="name_to_sub">Елемент ➔ Проста речовина (Купрум ➔ мідь)</option>
+                    <option value="sym_to_read">Символ ➔ Як читається (Hg ➔ гідраргіум)</option>
+                </select>
+            </div>
+
+            <label class="checkbox-label">
+                <input type="checkbox" id="hard-only" onchange="renderLeaderboard()">
+                Лише складні елементи (14 шт. з особливою назвою/вимовою)
+            </label>
+        </div>
+
+        <button class="start-btn" onclick="startQuiz()">🚀 Почати змагання</button>
+
+        <div class="leaderboard">
+            <h3 id="lb-title">🏆 Таблиця лідерів</h3>
+            <div id="lb-content">Завантаження...</div>
+        </div>
+    </div>
+
+    <!-- ЕКРАН ГРИ -->
+    <div id="quiz-screen" class="hidden">
+        <div class="stats">
+            <span id="player-badge">👤 Гравець</span>
+            <span id="progress-text">1 / 34</span>
+            <span class="timer-badge" id="timer-text">⏱ 00:00</span>
+        </div>
+        <div class="question-box">
+            <div class="question-label" id="q-label">Питання:</div>
+            <div class="question-main" id="q-main">H</div>
+        </div>
+        <div class="options" id="options-container"></div>
+        <button id="next-btn" class="next-btn hidden" style="margin-top:14px;" onclick="nextQuestion()">Далі ➔</button>
+    </div>
+
+    <!-- ЕКРАН РЕЗУЛЬТАТІВ -->
+    <div id="result-screen" class="hidden">
+        <h2 style="text-align:center; margin:0;">Фініш! 🎉</h2>
+        <div class="score-big" id="final-score">34 / 34</div>
+        <div class="time-result" id="final-time">Час: 01:15</div>
+        <p id="record-msg" style="text-align:center; font-weight:600; color:var(--success); margin:4px 0;"></p>
+        
+        <div id="mistakes-container" class="mistakes-list hidden"></div>
+        
+        <button id="retry-mistakes-btn" class="start-btn hidden" style="background:var(--warning); margin-bottom:10px;" onclick="retryMistakes()">🔧 Пройти лише помилки (поза рейтингом)</button>
+        <button class="start-btn" onclick="resetSetup()">🏠 На головну та до рейтингу</button>
+    </div>
+
+    <div class="footer-signature">
+        Створено з любов'ю, тато Мар'ян К. <span>❤️</span>
+    </div>
+</div>
+
+<script>
+// Посилання на Firebase Realtime DB (залиште порожнім для локального збереження або вставте URL)
+const CLOUD_DB_URL = "https://chemistry-9d2fa-default-rtdb.firebaseio.com/scores.json"; 
+
+// --- ГЕНЕРАТОР РАНДОМНИХ ЗВУКІВ (Web Audio API) ---
+let soundEnabled = localStorage.getItem("chem_sound") !== "off";
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+}
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem("chem_sound", soundEnabled ? "on" : "off");
+    updateSoundBtn();
+    if (soundEnabled) playTone(660, "sine", 0.1, 0);
+}
+
+function updateSoundBtn() {
+    const btn = document.getElementById("sound-btn");
+    btn.innerText = soundEnabled ? "🔊" : "🔇";
+    btn.classList.toggle("muted", !soundEnabled);
+}
+
+function playTone(freq, type, duration, delay = 0, vol = 0.18, slideTo = null) {
+    if (!soundEnabled) return;
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        if (slideTo) {
+            osc.frequency.exponentialRampToValueAtTime(slideTo, ctx.currentTime + delay + duration);
+        }
+        gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + duration);
+    } catch (e) {}
+}
+
+function playRandomSuccessSound() {
+    if (!soundEnabled) return;
+    const variant = Math.floor(Math.random() * 5);
+    if (variant === 0) {
+        // 1. Монетка в стилі Mario
+        playTone(987.77, "square", 0.08, 0, 0.12);
+        playTone(1318.51, "square", 0.28, 0.08, 0.12);
+    } else if (variant === 1) {
+        // 2. Мажорне арпеджіо перемоги
+        [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, "triangle", 0.14, i * 0.06, 0.2));
+    } else if (variant === 2) {
+        // 3. Космічний лазерний апгрейд
+        playTone(320, "sine", 0.28, 0, 0.22, 1150);
+    } else if (variant === 3) {
+        // 4. Подвійний кришталевий дзвін
+        playTone(880, "sine", 0.12, 0, 0.2);
+        playTone(1174.66, "sine", 0.25, 0.1, 0.2);
+    } else {
+        // 5. Фанфара "Та-да!"
+        playTone(587.33, "triangle", 0.1, 0, 0.18);
+        playTone(587.33, "triangle", 0.1, 0.11, 0.18);
+        playTone(880, "triangle", 0.3, 0.22, 0.22);
+    }
+}
+
+function playRandomWrongSound() {
+    if (!soundEnabled) return;
+    const variant = Math.floor(Math.random() * 4);
+    if (variant === 0) {
+        // 1. Сумний тромбон (Вау-вау-вау)
+        [300, 280, 260, 230].forEach((f, i) => playTone(f, "sawtooth", 0.16, i * 0.14, 0.12));
+    } else if (variant === 1) {
+        // 2. Мультяшне падіння вниз
+        playTone(550, "triangle", 0.35, 0, 0.2, 120);
+    } else if (variant === 2) {
+        // 3. Класичний ігровий буззер помилки
+        playTone(160, "sawtooth", 0.15, 0, 0.14);
+        playTone(130, "sawtooth", 0.25, 0.15, 0.14);
+    } else {
+        // 4. Пружинний "Упс"
+        playTone(220, "sine", 0.12, 0, 0.2, 420);
+        playTone(420, "sine", 0.22, 0.12, 0.2, 160);
+    }
+}
+
+function playFinishFanfare() {
+    if (!soundEnabled) return;
+    const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+    const delays = [0, 0.1, 0.2, 0.3, 0.45, 0.58];
+    const durs = [0.1, 0.1, 0.1, 0.14, 0.12, 0.4];
+    notes.forEach((f, i) => playTone(f, "triangle", durs[i], delays[i], 0.22));
+}
+
+// --- ДАНІ ЕЛЕМЕНТІВ ---
+const elements = [
+    { id: 1, name: "Гідроген", sym: "H", read: "аш", sub: "водень", hard: true },
+    { id: 2, name: "Літій", sym: "Li", read: "літій", sub: "літій", hard: false },
+    { id: 3, name: "Берилій", sym: "Be", read: "берилій", sub: "берилій", hard: false },
+    { id: 4, name: "Бор", sym: "B", read: "бор", sub: "бор", hard: false },
+    { id: 5, name: "Карбон", sym: "C", read: "це", sub: "вуглець", hard: true },
+    { id: 6, name: "Нітроген", sym: "N", read: "ен", sub: "азот", hard: true },
+    { id: 7, name: "Оксиген", sym: "O", read: "о", sub: "кисень", hard: true },
+    { id: 8, name: "Флуор", sym: "F", read: "флуор", sub: "фтор", hard: true },
+    { id: 9, name: "Натрій", sym: "Na", read: "натрій", sub: "натрій", hard: false },
+    { id: 10, name: "Магній", sym: "Mg", read: "магній", sub: "магній", hard: false },
+    { id: 11, name: "Алюміній", sym: "Al", read: "алюміній", sub: "алюміній", hard: false },
+    { id: 12, name: "Силіцій", sym: "Si", read: "силіцій", sub: "кремній", hard: true },
+    { id: 13, name: "Фосфор", sym: "P", read: "пе", sub: "фосфор", hard: true },
+    { id: 14, name: "Сульфур", sym: "S", read: "ес", sub: "сірка", hard: true },
+    { id: 15, name: "Хлор", sym: "Cl", read: "хлор", sub: "хлор", hard: false },
+    { id: 16, name: "Калій", sym: "K", read: "калій", sub: "калій", hard: false },
+    { id: 17, name: "Кальцій", sym: "Ca", read: "кальцій", sub: "кальцій", hard: false },
+    { id: 18, name: "Ванадій", sym: "V", read: "ванадій", sub: "ванадій", hard: false },
+    { id: 19, name: "Хром", sym: "Cr", read: "хром", sub: "хром", hard: false },
+    { id: 20, name: "Манган", sym: "Mn", read: "манган", sub: "марганець", hard: true },
+    { id: 21, name: "Ферум", sym: "Fe", read: "ферум", sub: "залізо", hard: true },
+    { id: 22, name: "Купрум", sym: "Cu", read: "купрум", sub: "мідь", hard: true },
+    { id: 23, name: "Цинк", sym: "Zn", read: "цинк", sub: "цинк", hard: false },
+    { id: 24, name: "Бром", sym: "Br", read: "бром", sub: "бром", hard: false },
+    { id: 25, name: "Стронцій", sym: "Sr", read: "стронцій", sub: "стронцій", hard: false },
+    { id: 26, name: "Аргентум", sym: "Ag", read: "аргентум", sub: "срібло", hard: true },
+    { id: 27, name: "Станум", sym: "Sn", read: "станум", sub: "олово", hard: true },
+    { id: 28, name: "Стибій", sym: "Sb", read: "стибій", sub: "стибій (сурма)", hard: false },
+    { id: 29, name: "Йод", sym: "I", read: "йод", sub: "йод", hard: false },
+    { id: 30, name: "Барій", sym: "Ba", read: "барій", sub: "барій", hard: false },
+    { id: 31, name: "Вольфрам", sym: "W", read: "вольфрам", sub: "вольфрам", hard: false },
+    { id: 32, name: "Аурум", sym: "Au", read: "аурум", sub: "золото", hard: true },
+    { id: 33, name: "Меркурій", sym: "Hg", read: "гідраргіум", sub: "ртуть", hard: true },
+    { id: 34, name: "Плюмбум", sym: "Pb", read: "плюмбум", sub: "свинець", hard: true }
+];
+
+const modesList = ["name_to_sym", "sym_to_name", "name_to_sub", "sym_to_read"];
+let pool = [], currentIndex = 0, score = 0, mistakes = [];
+let selectedMode = "all_mix", currentQuestionMode = "name_to_sym";
+let playerName = "", isRetryRun = false;
+let startTime = 0, elapsedSeconds = 0, timerInterval = null;
+
+window.onload = () => {
+    updateSoundBtn();
+    const savedName = localStorage.getItem("chem_last_player");
+    if (savedName) document.getElementById("player-name").value = savedName;
+    renderLeaderboard();
+};
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+}
+
+function startTimer() {
+    startTime = Date.now();
+    elapsedSeconds = 0;
+    document.getElementById("timer-text").innerText = "⏱ 00:00";
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById("timer-text").innerText = `⏱ ${formatTime(elapsedSeconds)}`;
+    }, 500);
+}
+
+function stopTimer() { clearInterval(timerInterval); }
+
+function startQuiz(customPool = null) {
+    const nameInput = document.getElementById("player-name").value.trim();
+    if (!nameInput) {
+        playRandomWrongSound();
+        alert("Будь ласка, введи своє ім'я перед початком!");
+        document.getElementById("player-name").focus();
+        return;
+    }
+    playerName = nameInput;
+    localStorage.setItem("chem_last_player", playerName);
+    selectedMode = document.getElementById("mode-select").value;
+    const hardOnly = document.getElementById("hard-only").checked;
+
+    if (customPool) {
+        pool = shuffle(customPool);
+        isRetryRun = true;
+    } else {
+        pool = hardOnly ? elements.filter(e => e.hard) : [...elements];
+        pool = shuffle(pool);
+        isRetryRun = false;
+    }
+
+    currentIndex = 0; score = 0; mistakes = [];
+    document.getElementById("player-badge").innerText = `👤 ${playerName}`;
+    document.getElementById("setup-screen").classList.add("hidden");
+    document.getElementById("result-screen").classList.add("hidden");
+    document.getElementById("quiz-screen").classList.remove("hidden");
+    
+    startTimer();
+    showQuestion();
+}
+
+function getFields(item, qMode) {
+    if (qMode === "name_to_sym") return { q: item.name, a: item.sym, label: "Вкажи хімічний символ для елемента:", key: "sym" };
+    if (qMode === "sym_to_name") return { q: item.sym, a: item.name, label: "Який елемент позначається символом:", key: "name" };
+    if (qMode === "name_to_sub") return { q: `${item.name} (${item.sym})`, a: item.sub, label: "Яку просту речовину утворює:", key: "sub" };
+    if (qMode === "sym_to_read") return { q: `${item.sym} (${item.name})`, a: item.read, label: "Як читається цей елемент у формулах:", key: "read" };
+}
+
+function showQuestion() {
+    document.getElementById("next-btn").classList.add("hidden");
+    const current = pool[currentIndex];
+    currentQuestionMode = selectedMode === "all_mix" 
+        ? modesList[Math.floor(Math.random() * modesList.length)] 
+        : selectedMode;
+
+    const { q, a, label, key } = getFields(current, currentQuestionMode);
+
+    document.getElementById("progress-text").innerText = `${currentIndex + 1} / ${pool.length}`;
+    document.getElementById("q-label").innerText = label;
+    document.getElementById("q-main").innerText = q;
+
+    let wrongAnswers = [...new Set(elements.filter(e => e[key] !== a).map(e => e[key]))];
+    const options = shuffle([a, ...shuffle(wrongAnswers).slice(0, 3)]);
+
+    const container = document.getElementById("options-container");
+    container.innerHTML = "";
+    options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(btn, opt, a, current);
+        container.appendChild(btn);
+    });
+}
+
+function checkAnswer(btn, selected, correct, item) {
+    document.querySelectorAll(".option-btn").forEach(b => {
+        b.disabled = true;
+        if (b.innerText === correct) b.classList.add("correct");
+    });
+
+    if (selected === correct) {
+        score++;
+        playRandomSuccessSound();
+    } else {
+        btn.classList.add("wrong");
+        playRandomWrongSound();
+        mistakes.push({ item, correct, selected, q: getFields(item, currentQuestionMode).q });
+    }
+    document.getElementById("next-btn").classList.remove("hidden");
+}
+
+function nextQuestion() {
+    currentIndex++;
+    if (currentIndex < pool.length) showQuestion();
+    else showResults();
+}
+
+async function showResults() {
+    stopTimer();
+    playFinishFanfare();
+    document.getElementById("quiz-screen").classList.add("hidden");
+    document.getElementById("result-screen").classList.remove("hidden");
+    document.getElementById("final-score").innerText = `${score} / ${pool.length}`;
+    document.getElementById("final-time").innerText = `⏱ Час: ${formatTime(elapsedSeconds)}`;
+
+    const recordMsg = document.getElementById("record-msg");
+    if (!isRetryRun) {
+        const status = await saveResult(playerName, score, pool.length, elapsedSeconds);
+        recordMsg.innerText = status;
+    } else {
+        recordMsg.innerText = "Тренувальний забіг по помилках завершено!";
+    }
+
+    const mContainer = document.getElementById("mistakes-container");
+    const retryBtn = document.getElementById("retry-mistakes-btn");
+
+    if (mistakes.length === 0) {
+        mContainer.classList.add("hidden");
+        retryBtn.classList.add("hidden");
+    } else {
+        mContainer.classList.remove("hidden");
+        retryBtn.classList.remove("hidden");
+        mContainer.innerHTML = mistakes.map(m =>
+            `<div>❌ <b>${m.q}</b> — було: <s>${m.selected}</s> | треба: <b>${m.correct}</b></div>`
+        ).join("<hr style='border:0;border-top:1px solid #fecdd3;margin:6px 0;'>");
+    }
+}
+
+function getBoardKey() {
+    const mode = document.getElementById("mode-select").value;
+    const hard = document.getElementById("hard-only").checked ? "hard" : "full";
+    return `chem_lb_${mode}_${hard}`;
+}
+
+async function fetchScores() {
+    const key = getBoardKey();
+    if (CLOUD_DB_URL) {
+        try {
+            const res = await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`));
+            const data = await res.json();
+            return data ? Object.values(data) : [];
+        } catch (e) { console.error(e); }
+    }
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+}
+
+async function saveResult(name, newScore, total, newTime) {
+    const key = getBoardKey();
+    let list = await fetchScores();
+    const normName = name.trim().toLowerCase();
+    
+    let existing = list.find(p => p.name.trim().toLowerCase() === normName);
+    let msg = "";
+
+    if (existing) {
+        existing.attempts = (existing.attempts || 1) + 1;
+        const isBetter = (newScore > existing.score) || (newScore === existing.score && newTime < existing.time);
+        if (isBetter) {
+            existing.score = newScore;
+            existing.time = newTime;
+            existing.name = name.trim();
+            msg = `🔥 Новий особистий рекорд! (Спроба №${existing.attempts})`;
+        } else {
+            msg = `Спроба №${existing.attempts} зарахована! Твій рекорд: ${existing.score}/${total} за ${formatTime(existing.time)}`;
+        }
+    } else {
+        list.push({ name: name.trim(), score: newScore, total, time: newTime, attempts: 1 });
+        msg = "🎉 Тебе додано до таблиці лідерів!";
+    }
+
+    localStorage.setItem(key, JSON.stringify(list));
+
+    if (CLOUD_DB_URL) {
+        try {
+            await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(list)
+            });
+        } catch (e) { console.error(e); }
+    }
+    return msg;
+}
+
+async function renderLeaderboard() {
+    const container = document.getElementById("lb-content");
+    let list = await fetchScores();
+
+    if (list.length === 0) {
+        container.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:12px;">Ще ніхто не проходив цей режим. Будь першим!</div>`;
+        return;
+    }
+
+    list.sort((a, b) => (b.score - a.score) || (a.time - b.time));
+
+    const medals = ["🥇", "🥈", "🥉"];
+    let html = `<table class="lb-table">
+        <thead><tr><th>#</th><th>Учень</th><th>Бали</th><th>Час</th><th>Спроб</th></tr></thead><tbody>`;
+    
+    list.slice(0, 15).forEach((p, idx) => {
+        const rank = medals[idx] || (idx + 1);
+        html += `<tr>
+            <td>${rank}</td>
+            <td>${p.name}</td>
+            <td><b>${p.score}</b>/${p.total}</td>
+            <td>${formatTime(p.time)}</td>
+            <td><span class="badge-attempts">${p.attempts || 1}</span></td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+function retryMistakes() {
+    startQuiz(mistakes.map(m => m.item));
+}
+
+function resetSetup() {
+    document.getElementById("result-screen").classList.add("hidden");
+    document.getElementById("setup-screen").classList.remove("hidden");
+    renderLeaderboard();
+}
+</script>
+</body>
+</html>
