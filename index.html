@@ -135,7 +135,7 @@
             <div>
                 <label for="mode-select">Режим гри:</label>
                 <select id="mode-select" onchange="renderLeaderboard()">
-                    <option value="all_mix">🔥 Супер-мікс (усі питання без підказок)</option>
+                    <option value="all_mix">🔥 Супер-мікс (усі питання + пастки)</option>
                     <option value="name_to_sym">Назва елемента ➔ Символ (Гідроген ➔ H)</option>
                     <option value="sym_to_name">Символ ➔ Назва елемента (Fe ➔ Ферум)</option>
                     <option value="name_to_sub">Символ ➔ Проста речовина (Cu ➔ мідь)</option>
@@ -319,6 +319,44 @@ const elements = [
     { id: 34, name: "Плюмбум", sym: "Pb", read: "плюмбум", sub: "свинець", hard: true }
 ];
 
+// --- МАТРИЦЯ СХОЖИХ ЕЛЕМЕНТІВ-ПАСТОК (КОНФУЗОРІВ) ---
+const confusableMap = {
+    "H":  ["N", "O", "C", "Hg", "F"],
+    "Li": ["Na", "K", "Be", "Al", "Si"],
+    "Be": ["B", "Br", "Ba", "Mg", "Li"],
+    "B":  ["Be", "Br", "Ba", "C", "P"],
+    "C":  ["Ca", "Cl", "Cr", "Cu", "K", "Si"],
+    "N":  ["Na", "H", "O", "P", "S", "Mn"],
+    "O":  ["H", "N", "C", "S", "F"],
+    "F":  ["Fe", "P", "Cl", "Br", "I"],
+    "Na": ["N", "K", "Mg", "Ca", "Li"],
+    "Mg": ["Mn", "Hg", "Ag", "Na", "Ca"],
+    "Al": ["Ag", "Au", "Fe", "Zn", "Mg"],
+    "Si": ["S", "Sn", "Sr", "Sb", "C"],
+    "P":  ["F", "Fe", "Pb", "S", "N"],
+    "S":  ["Si", "Sn", "Sr", "Sb", "C", "P"],
+    "Cl": ["C", "Cr", "Ca", "Cu", "F", "Br"],
+    "K":  ["Ca", "C", "Cu", "Cr", "Na"],
+    "Ca": ["K", "C", "Cl", "Cu", "Cr", "Ba"],
+    "V":  ["W", "Zn", "Cr", "Mn", "Fe"],
+    "Cr": ["Cl", "Cu", "C", "Ca", "Mn", "Fe"],
+    "Mn": ["Mg", "Hg", "Fe", "Cr", "Cu", "N"],
+    "Fe": ["F", "P", "Cu", "Zn", "Mn", "Pb"],
+    "Cu": ["Cr", "Ca", "C", "Cl", "K", "Fe", "Ag"],
+    "Zn": ["Sn", "Sr", "Cu", "Fe", "Al", "V"],
+    "Br": ["B", "Be", "Ba", "Cl", "I", "Cr"],
+    "Sr": ["Sn", "Sb", "Si", "S", "Cr", "Br", "Ba"],
+    "Ag": ["Au", "Al", "Hg", "Mg", "Cu", "Pb"],
+    "Sn": ["Sr", "Sb", "Si", "S", "Zn", "Pb"],
+    "Sb": ["Sn", "Sr", "Si", "S", "Pb", "Ba"],
+    "I":  ["Cl", "Br", "F", "H", "O", "V"],
+    "Ba": ["B", "Be", "Br", "Ca", "Sr", "Pb"],
+    "W":  ["V", "Fe", "Cr", "Zn", "Mn"],
+    "Au": ["Ag", "Al", "Cu", "Hg", "Pb"],
+    "Hg": ["Ag", "Au", "Mg", "Mn", "Pb", "H"],
+    "Pb": ["P", "Sn", "Sb", "Hg", "Fe", "Ag", "Au"]
+};
+
 const modesList = ["name_to_sym", "sym_to_name", "name_to_sub", "sym_to_read"];
 let pool = [], currentIndex = 0, score = 0, mistakes = [];
 let selectedMode = "all_mix", currentQuestionMode = "name_to_sym";
@@ -385,12 +423,52 @@ function startQuiz(customPool = null) {
     showQuestion();
 }
 
-// БЕЗ ПІДКАЗОК УКРАЇНСЬКОЮ У ДУЖКАХ!
 function getFields(item, qMode) {
     if (qMode === "name_to_sym") return { q: item.name, a: item.sym, label: "Вкажи хімічний символ для елемента:", key: "sym" };
     if (qMode === "sym_to_name") return { q: item.sym, a: item.name, label: "Який елемент позначається символом:", key: "name" };
     if (qMode === "name_to_sub") return { q: item.sym, a: item.sub, label: "Яку просту речовину утворює цей елемент:", key: "sub" };
     if (qMode === "sym_to_read") return { q: item.sym, a: item.read, label: "Як читається цей елемент у формулах:", key: "read" };
+}
+
+// --- РОЗУМНИЙ ПІДБІР СХОЖИХ ПАСТОК ---
+function generateSmartWrongOptions(current, qMode, correctAns, key) {
+    let traps = [];
+    const addTrap = (val) => {
+        if (val && val !== correctAns && !traps.includes(val)) traps.push(val);
+    };
+
+    // 1. Власна пастка елемента (наприклад, для Fe у речовинах підкласти "ферум", а для вимови Hg — "меркурій" та "ртуть")
+    if (qMode === "name_to_sub" && current.name.toLowerCase() !== correctAns.toLowerCase()) {
+        addTrap(current.name.toLowerCase());
+    }
+    if (qMode === "sym_to_read") {
+        if (current.name.toLowerCase() !== correctAns.toLowerCase()) addTrap(current.name.toLowerCase());
+        if (current.sub.toLowerCase() !== correctAns.toLowerCase()) addTrap(current.sub.toLowerCase());
+        // Якщо вимова коротка ("аш", "це", "ен", "о", "пе", "ес"), підкладаємо інші короткі вимови
+        const shortReads = ["аш", "це", "ен", "о", "пе", "ес"];
+        if (shortReads.includes(correctAns)) {
+            shuffle(shortReads).forEach(r => addTrap(r));
+        }
+    }
+
+    // 2. Пастки зі списку візуально/фонетично схожих елементів-близнюків
+    const similarSyms = shuffle(confusableMap[current.sym] || []);
+    for (const sym of similarSyms) {
+        const simEl = elements.find(e => e.sym === sym);
+        if (simEl) addTrap(simEl[key]);
+    }
+
+    // 3. Додатковий пошук за спільною першою літерою (якщо ще потрібно)
+    const sameFirstLetter = shuffle(elements.filter(e => 
+        e[key][0].toLowerCase() === correctAns[0].toLowerCase()
+    ));
+    sameFirstLetter.forEach(e => addTrap(e[key]));
+
+    // 4. Запасний варіант на випадок, якщо якихось не вистачило до 3
+    const fallback = shuffle(elements.map(e => e[key]));
+    fallback.forEach(val => addTrap(val));
+
+    return traps.slice(0, 3);
 }
 
 function showQuestion() {
@@ -406,23 +484,7 @@ function showQuestion() {
     document.getElementById("q-label").innerText = label;
     document.getElementById("q-main").innerText = q;
 
-    let wrongPool = [...new Set(elements.filter(e => e[key] !== a).map(e => e[key]))];
-    let selectedWrong = [];
-
-    // Додаємо розумну пастку: якщо питаємо просту речовину для Fe, підкладаємо у варіанти "ферум"
-    if (currentQuestionMode === "name_to_sub" && current.name.toLowerCase() !== a.toLowerCase()) {
-        selectedWrong.push(current.name.toLowerCase());
-    }
-    // Якщо питаємо як читається Hg або C, підкладаємо у варіанти назву простої речовини ("ртуть", "вуглець") або назву ("меркурій")
-    if (currentQuestionMode === "sym_to_read" && current.sub.toLowerCase() !== a.toLowerCase()) {
-        selectedWrong.push(current.sub.toLowerCase());
-    }
-
-    wrongPool = shuffle(wrongPool.filter(w => !selectedWrong.includes(w)));
-    while (selectedWrong.length < 3 && wrongPool.length > 0) {
-        selectedWrong.push(wrongPool.pop());
-    }
-
+    const selectedWrong = generateSmartWrongOptions(current, currentQuestionMode, a, key);
     const options = shuffle([a, ...selectedWrong]);
 
     const container = document.getElementById("options-container");
@@ -448,7 +510,7 @@ function checkAnswer(btn, selected, correct, item) {
     } else {
         btn.classList.add("wrong");
         playRandomWrongSound();
-        const { q, label } = getFields(item, currentQuestionMode);
+        const { q } = getFields(item, currentQuestionMode);
         mistakes.push({ item, correct, selected, q: `${q} (${item.name})` });
     }
     document.getElementById("next-btn").classList.remove("hidden");
