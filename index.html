@@ -78,7 +78,7 @@
             background: #eff6ff; border-radius: 16px; border: 2px solid #bfdbfe;
         }
         .question-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 8px; }
-        .question-main { font-size: 2.3rem; font-weight: 800; color: var(--primary); }
+        .question-main { font-size: 2.6rem; font-weight: 800; color: var(--primary); }
         
         .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .option-btn {
@@ -135,17 +135,17 @@
             <div>
                 <label for="mode-select">Режим гри:</label>
                 <select id="mode-select" onchange="renderLeaderboard()">
-                    <option value="all_mix">🔥 Супер-мікс (усі питання)</option>
+                    <option value="all_mix">🔥 Супер-мікс (усі питання без підказок)</option>
                     <option value="name_to_sym">Назва елемента ➔ Символ (Гідроген ➔ H)</option>
                     <option value="sym_to_name">Символ ➔ Назва елемента (Fe ➔ Ферум)</option>
-                    <option value="name_to_sub">Елемент ➔ Проста речовина (Купрум ➔ мідь)</option>
-                    <option value="sym_to_read">Символ ➔ Як читається (Hg ➔ гідраргіум)</option>
+                    <option value="name_to_sub">Символ ➔ Проста речовина (Cu ➔ мідь)</option>
+                    <option value="sym_to_read">Символ ➔ Як читається у формулі (Hg ➔ гідраргіум)</option>
                 </select>
             </div>
 
             <label class="checkbox-label">
                 <input type="checkbox" id="hard-only" onchange="renderLeaderboard()">
-                Лише складні елементи (14 шт. з особливою назвою/вимовою)
+                Лише складні елементи (14 шт., де речовина/вимова відрізняється)
             </label>
         </div>
 
@@ -191,7 +191,7 @@
 </div>
 
 <script>
-// Посилання на Firebase Realtime DB (залиште порожнім для локального збереження або вставте URL)
+// Підключена ваша хмарна база даних Firebase
 const CLOUD_DB_URL = "https://chemistry-9d2fa-default-rtdb.firebaseio.com/scores.json"; 
 
 // --- ГЕНЕРАТОР РАНДОМНИХ ЗВУКІВ (Web Audio API) ---
@@ -241,21 +241,16 @@ function playRandomSuccessSound() {
     if (!soundEnabled) return;
     const variant = Math.floor(Math.random() * 5);
     if (variant === 0) {
-        // 1. Монетка в стилі Mario
         playTone(987.77, "square", 0.08, 0, 0.12);
         playTone(1318.51, "square", 0.28, 0.08, 0.12);
     } else if (variant === 1) {
-        // 2. Мажорне арпеджіо перемоги
         [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, "triangle", 0.14, i * 0.06, 0.2));
     } else if (variant === 2) {
-        // 3. Космічний лазерний апгрейд
         playTone(320, "sine", 0.28, 0, 0.22, 1150);
     } else if (variant === 3) {
-        // 4. Подвійний кришталевий дзвін
         playTone(880, "sine", 0.12, 0, 0.2);
         playTone(1174.66, "sine", 0.25, 0.1, 0.2);
     } else {
-        // 5. Фанфара "Та-да!"
         playTone(587.33, "triangle", 0.1, 0, 0.18);
         playTone(587.33, "triangle", 0.1, 0.11, 0.18);
         playTone(880, "triangle", 0.3, 0.22, 0.22);
@@ -266,17 +261,13 @@ function playRandomWrongSound() {
     if (!soundEnabled) return;
     const variant = Math.floor(Math.random() * 4);
     if (variant === 0) {
-        // 1. Сумний тромбон (Вау-вау-вау)
         [300, 280, 260, 230].forEach((f, i) => playTone(f, "sawtooth", 0.16, i * 0.14, 0.12));
     } else if (variant === 1) {
-        // 2. Мультяшне падіння вниз
         playTone(550, "triangle", 0.35, 0, 0.2, 120);
     } else if (variant === 2) {
-        // 3. Класичний ігровий буззер помилки
         playTone(160, "sawtooth", 0.15, 0, 0.14);
         playTone(130, "sawtooth", 0.25, 0.15, 0.14);
     } else {
-        // 4. Пружинний "Упс"
         playTone(220, "sine", 0.12, 0, 0.2, 420);
         playTone(420, "sine", 0.22, 0.12, 0.2, 160);
     }
@@ -394,11 +385,12 @@ function startQuiz(customPool = null) {
     showQuestion();
 }
 
+// БЕЗ ПІДКАЗОК УКРАЇНСЬКОЮ У ДУЖКАХ!
 function getFields(item, qMode) {
     if (qMode === "name_to_sym") return { q: item.name, a: item.sym, label: "Вкажи хімічний символ для елемента:", key: "sym" };
     if (qMode === "sym_to_name") return { q: item.sym, a: item.name, label: "Який елемент позначається символом:", key: "name" };
-    if (qMode === "name_to_sub") return { q: `${item.name} (${item.sym})`, a: item.sub, label: "Яку просту речовину утворює:", key: "sub" };
-    if (qMode === "sym_to_read") return { q: `${item.sym} (${item.name})`, a: item.read, label: "Як читається цей елемент у формулах:", key: "read" };
+    if (qMode === "name_to_sub") return { q: item.sym, a: item.sub, label: "Яку просту речовину утворює цей елемент:", key: "sub" };
+    if (qMode === "sym_to_read") return { q: item.sym, a: item.read, label: "Як читається цей елемент у формулах:", key: "read" };
 }
 
 function showQuestion() {
@@ -414,8 +406,24 @@ function showQuestion() {
     document.getElementById("q-label").innerText = label;
     document.getElementById("q-main").innerText = q;
 
-    let wrongAnswers = [...new Set(elements.filter(e => e[key] !== a).map(e => e[key]))];
-    const options = shuffle([a, ...shuffle(wrongAnswers).slice(0, 3)]);
+    let wrongPool = [...new Set(elements.filter(e => e[key] !== a).map(e => e[key]))];
+    let selectedWrong = [];
+
+    // Додаємо розумну пастку: якщо питаємо просту речовину для Fe, підкладаємо у варіанти "ферум"
+    if (currentQuestionMode === "name_to_sub" && current.name.toLowerCase() !== a.toLowerCase()) {
+        selectedWrong.push(current.name.toLowerCase());
+    }
+    // Якщо питаємо як читається Hg або C, підкладаємо у варіанти назву простої речовини ("ртуть", "вуглець") або назву ("меркурій")
+    if (currentQuestionMode === "sym_to_read" && current.sub.toLowerCase() !== a.toLowerCase()) {
+        selectedWrong.push(current.sub.toLowerCase());
+    }
+
+    wrongPool = shuffle(wrongPool.filter(w => !selectedWrong.includes(w)));
+    while (selectedWrong.length < 3 && wrongPool.length > 0) {
+        selectedWrong.push(wrongPool.pop());
+    }
+
+    const options = shuffle([a, ...selectedWrong]);
 
     const container = document.getElementById("options-container");
     container.innerHTML = "";
@@ -440,7 +448,8 @@ function checkAnswer(btn, selected, correct, item) {
     } else {
         btn.classList.add("wrong");
         playRandomWrongSound();
-        mistakes.push({ item, correct, selected, q: getFields(item, currentQuestionMode).q });
+        const { q, label } = getFields(item, currentQuestionMode);
+        mistakes.push({ item, correct, selected, q: `${q} (${item.name})` });
     }
     document.getElementById("next-btn").classList.remove("hidden");
 }
