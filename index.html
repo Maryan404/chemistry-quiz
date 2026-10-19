@@ -794,28 +794,75 @@ function resetSetup() {
     renderLeaderboard();
 }
 
-// --- СЕКРЕТНЕ МЕНЮ АДМІНІСТРАТОРА (3 швидкі кліки/тапи по сердечку ❤️) ---
+// --- ЗАХИЩЕНЕ СЕКРЕТНЕ МЕНЮ (5 швидких кліків по сердечку ❤️) ---
 let heartClicks = 0;
 let heartTimer = null;
+
+function hashPin(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+        h = ((h << 5) - h) + str.charCodeAt(i);
+        h |= 0;
+    }
+    return h.toString();
+}
 
 async function handleHeartClick() {
     heartClicks++;
     clearTimeout(heartTimer);
-    heartTimer = setTimeout(() => { heartClicks = 0; }, 1000);
+    heartTimer = setTimeout(() => { heartClicks = 0; }, 1200);
 
-    if (heartClicks >= 3) {
+    if (heartClicks >= 5) {
         heartClicks = 0;
-        const pin = prompt("Секретне меню тата Мар'яна 🛠️\nВведіть 404, щоб очистити таблицю лідерів поточного етапу:");
-        if (pin === "404") {
+        const pin = prompt("🔒 Адмін-панель\nВведіть пароль доступу:");
+        if (!pin) return;
+
+        // Перевірка зашифрованого пароля
+        if (hashPin(pin.trim()) === "1508384") {
             const key = getBoardKey();
-            localStorage.removeItem(key);
-            if (CLOUD_DB_URL) {
-                try {
-                    await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), { method: "DELETE" });
-                } catch (e) { console.error(e); }
+            let list = await fetchScores();
+            const names = list.map(p => p.name).join(", ") || "таблиця порожня";
+
+            const target = prompt(
+                `🛠️ Управління таблицею:\nЗараз у списку: ${names}\n\n` +
+                `• Введіть ІМ'Я гравця, щоб видалити лише його\n` +
+                `• Введіть ALL (або ВСІ), щоб очистити всю таблицю:`
+            );
+            if (!target) return;
+
+            const cleanTarget = target.trim().toLowerCase();
+
+            if (cleanTarget === "all" || cleanTarget === "всі") {
+                localStorage.removeItem(key);
+                if (CLOUD_DB_URL) {
+                    try {
+                        await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), { method: "DELETE" });
+                    } catch (e) { console.error(e); }
+                }
+                renderLeaderboard();
+                alert("✅ Всю таблицю лідерів цього етапу очищено!");
+            } else {
+                const newList = list.filter(p => p.name.trim().toLowerCase() !== cleanTarget);
+                if (newList.length === list.length) {
+                    alert(`⚠️ Гравця з ім'ям "${target}" не знайдено у поточній таблиці.`);
+                    return;
+                }
+                localStorage.setItem(key, JSON.stringify(newList));
+                if (CLOUD_DB_URL) {
+                    try {
+                        await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(newList)
+                        });
+                    } catch (e) { console.error(e); }
+                }
+                renderLeaderboard();
+                alert(`✅ Гравця "${target}" видалено з таблиці!`);
             }
-            renderLeaderboard();
-            alert("✅ Таблицю лідерів для цього етапу успішно очищено!");
+        } else {
+            playRandomWrongSound();
+            alert("⛔ Невірний пароль! Спробу зафіксовано 😉");
         }
     }
 }
