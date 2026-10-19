@@ -798,15 +798,6 @@ function resetSetup() {
 let heartClicks = 0;
 let heartTimer = null;
 
-function hashPin(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) {
-        h = ((h << 5) - h) + str.charCodeAt(i);
-        h |= 0;
-    }
-    return h.toString();
-}
-
 async function handleHeartClick() {
     heartClicks++;
     clearTimeout(heartTimer);
@@ -817,8 +808,8 @@ async function handleHeartClick() {
         const pin = prompt("🔒 Адмін-панель\nВведіть пароль доступу:");
         if (!pin) return;
 
-        // Перевірка зашифрованого пароля
-        if (hashPin(pin.trim()) === "1508384") {
+        // Перевірка пароля (закодовано Base64 для 1103)
+        if (btoa(pin.trim()) === "MTEwMw==") {
             const key = getBoardKey();
             let list = await fetchScores();
             const names = list.map(p => p.name).join(", ") || "таблиця порожня";
