@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Хімічний Турнір • 34 елементи</title>
+    <title>Хімічний Турнір • Періодична система</title>
     <style>
         :root {
             --bg: #f0f4f8;
@@ -25,7 +25,7 @@
             min-height: 100vh;
         }
         .container {
-            background: var(--card); width: 100%; max-width: 580px;
+            background: var(--card); width: 100%; max-width: 600px;
             padding: 26px; border-radius: 22px;
             box-shadow: 0 12px 30px rgba(37, 99, 235, 0.1);
             position: relative;
@@ -48,15 +48,30 @@
             display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px;
             background: #f8fafc; padding: 16px; border-radius: 14px; border: 1px solid #e2e8f0;
         }
-        label { font-size: 0.92rem; font-weight: 600; color: #334155; }
+        label { font-size: 0.92rem; font-weight: 600; color: #334155; display: block; margin-bottom: 5px; }
         input[type="text"], select {
-            width: 100%; padding: 12px 14px; border-radius: 10px;
-            border: 1.5px solid #cbd5e1; font-size: 1rem; outline: none; transition: 0.2s;
+            width: 100%; padding: 11px 14px; border-radius: 10px;
+            border: 1.5px solid #cbd5e1; font-size: 0.98rem; outline: none; transition: 0.2s;
+            background: white;
         }
         input[type="text"]:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
         
+        .stage-tabs {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        }
+        .stage-btn {
+            padding: 10px 8px; border-radius: 10px; border: 1.5px solid #cbd5e1;
+            background: #ffffff; color: var(--text); font-size: 0.88rem; font-weight: 600;
+            cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .stage-btn:hover { border-color: var(--primary); background: #f8fafc; }
+        .stage-btn.active {
+            background: #eff6ff; border-color: var(--primary); color: var(--primary);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.15);
+        }
+        
         .checkbox-label {
-            display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+            display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; margin-top: 2px;
         }
         
         button {
@@ -96,9 +111,9 @@
             display: flex; justify-content: center; align-items: center; gap: 10px;
             margin-bottom: 10px;
         }
-        .lb-header h3 { margin: 0; font-size: 1.05rem; color: #334155; }
+        .lb-header h3 { margin: 0; font-size: 1rem; color: #334155; }
         .refresh-btn {
-            padding: 5px 10px; font-size: 0.85rem; background: #f1f5f9;
+            padding: 5px 10px; font-size: 0.82rem; background: #f1f5f9;
             border: 1px solid #cbd5e1; border-radius: 8px; color: #334155;
         }
         .refresh-btn:hover { background: #e2e8f0; }
@@ -132,7 +147,7 @@
 <div class="container">
     <button id="sound-btn" class="sound-toggle" onclick="toggleSound()" title="Увімкнути/вимкнути звук">🔊</button>
     <h1>🧪 Хімічний Турнір</h1>
-    <div class="subtitle">Перевір себе та позмагайся з однокласниками!</div>
+    <div class="subtitle">Вивчай періодичну систему поетапно з однокласниками!</div>
 
     <!-- СТАРТОВИЙ ЕКРАН -->
     <div id="setup-screen">
@@ -140,6 +155,16 @@
             <div>
                 <label for="player-name">Твоє ім'я або нікнейм:</label>
                 <input type="text" id="player-name" placeholder="Наприклад: Софія" maxlength="25">
+            </div>
+
+            <div>
+                <label>Обери етап навчання:</label>
+                <div class="stage-tabs">
+                    <button type="button" class="stage-btn active" id="st-1" onclick="selectStage('stage1')">📗 Етап 1 (34 ел.)</button>
+                    <button type="button" class="stage-btn" id="st-2" onclick="selectStage('stage2')">📘 Етап 2 (38 ел.)</button>
+                    <button type="button" class="stage-btn" id="st-3" onclick="selectStage('stage3')">📙 Етап 3 (38 ел.)</button>
+                    <button type="button" class="stage-btn" id="st-all" onclick="selectStage('all')">🏆 Загальний (Усі)</button>
+                </div>
             </div>
 
             <div>
@@ -155,7 +180,7 @@
 
             <label class="checkbox-label">
                 <input type="checkbox" id="hard-only" onchange="renderLeaderboard()">
-                Лише складні елементи (14 шт., де речовина/вимова відрізняється)
+                Лише складні елементи (де речовина або вимова відрізняється)
             </label>
         </div>
 
@@ -163,7 +188,7 @@
 
         <div class="leaderboard">
             <div class="lb-header">
-                <h3 id="lb-title">🏆 Таблиця лідерів</h3>
+                <h3 id="lb-title">🏆 Таблиця лідерів (Етап 1)</h3>
                 <button class="refresh-btn" onclick="renderLeaderboard(true)" title="Оновити результати">🔄 Оновити</button>
             </div>
             <div id="lb-content">Завантаження...</div>
@@ -294,83 +319,168 @@ function playFinishFanfare() {
     notes.forEach((f, i) => playTone(f, "triangle", durs[i], delays[i], 0.22));
 }
 
-// --- ДАНІ ЕЛЕМЕНТІВ ---
-const elements = [
-    { id: 1, name: "Гідроген", sym: "H", read: "аш", sub: "водень", hard: true },
-    { id: 2, name: "Літій", sym: "Li", read: "літій", sub: "літій", hard: false },
-    { id: 3, name: "Берилій", sym: "Be", read: "берилій", sub: "берилій", hard: false },
-    { id: 4, name: "Бор", sym: "B", read: "бор", sub: "бор", hard: false },
-    { id: 5, name: "Карбон", sym: "C", read: "це", sub: "вуглець", hard: true },
-    { id: 6, name: "Нітроген", sym: "N", read: "ен", sub: "азот", hard: true },
-    { id: 7, name: "Оксиген", sym: "O", read: "о", sub: "кисень", hard: true },
-    { id: 8, name: "Флуор", sym: "F", read: "флуор", sub: "фтор", hard: true },
-    { id: 9, name: "Натрій", sym: "Na", read: "натрій", sub: "натрій", hard: false },
-    { id: 10, name: "Магній", sym: "Mg", read: "магній", sub: "магній", hard: false },
-    { id: 11, name: "Алюміній", sym: "Al", read: "алюміній", sub: "алюміній", hard: false },
-    { id: 12, name: "Силіцій", sym: "Si", read: "силіцій", sub: "кремній", hard: true },
-    { id: 13, name: "Фосфор", sym: "P", read: "пе", sub: "фосфор", hard: true },
-    { id: 14, name: "Сульфур", sym: "S", read: "ес", sub: "сірка", hard: true },
-    { id: 15, name: "Хлор", sym: "Cl", read: "хлор", sub: "хлор", hard: false },
-    { id: 16, name: "Калій", sym: "K", read: "калій", sub: "калій", hard: false },
-    { id: 17, name: "Кальцій", sym: "Ca", read: "кальцій", sub: "кальцій", hard: false },
-    { id: 18, name: "Ванадій", sym: "V", read: "ванадій", sub: "ванадій", hard: false },
-    { id: 19, name: "Хром", sym: "Cr", read: "хром", sub: "хром", hard: false },
-    { id: 20, name: "Манган", sym: "Mn", read: "манган", sub: "марганець", hard: true },
-    { id: 21, name: "Ферум", sym: "Fe", read: "ферум", sub: "залізо", hard: true },
-    { id: 22, name: "Купрум", sym: "Cu", read: "купрум", sub: "мідь", hard: true },
-    { id: 23, name: "Цинк", sym: "Zn", read: "цинк", sub: "цинк", hard: false },
-    { id: 24, name: "Бром", sym: "Br", read: "бром", sub: "бром", hard: false },
-    { id: 25, name: "Стронцій", sym: "Sr", read: "стронцій", sub: "стронцій", hard: false },
-    { id: 26, name: "Аргентум", sym: "Ag", read: "аргентум", sub: "срібло", hard: true },
-    { id: 27, name: "Станум", sym: "Sn", read: "станум", sub: "олово", hard: true },
-    { id: 28, name: "Стибій", sym: "Sb", read: "стибій", sub: "стибій (сурма)", hard: false },
-    { id: 29, name: "Йод", sym: "I", read: "йод", sub: "йод", hard: false },
-    { id: 30, name: "Барій", sym: "Ba", read: "барій", sub: "барій", hard: false },
-    { id: 31, name: "Вольфрам", sym: "W", read: "вольфрам", sub: "вольфрам", hard: false },
-    { id: 32, name: "Аурум", sym: "Au", read: "аурум", sub: "золото", hard: true },
-    { id: 33, name: "Меркурій", sym: "Hg", read: "гідраргіум", sub: "ртуть", hard: true },
-    { id: 34, name: "Плюмбум", sym: "Pb", read: "плюмбум", sub: "свинець", hard: true }
+// =========================================================================
+// БАЗА ЕЛЕМЕНТІВ ПО 3 ЕТАПАХ (Усі 110 елементів розбиті на stage1, stage2, stage3)
+// Коли вчителька дасть точні списки для 2 і 3 етапу, достатньо змінити параметр stage!
+// =========================================================================
+const allElements = [
+    // --- ЕТАП 1 (34 елементи з вашого першого листка) ---
+    { id: 1, stage: "stage1", name: "Гідроген", sym: "H", read: "аш", sub: "водень", hard: true },
+    { id: 2, stage: "stage1", name: "Літій", sym: "Li", read: "літій", sub: "літій", hard: false },
+    { id: 3, stage: "stage1", name: "Берилій", sym: "Be", read: "берилій", sub: "берилій", hard: false },
+    { id: 4, stage: "stage1", name: "Бор", sym: "B", read: "бор", sub: "бор", hard: false },
+    { id: 5, stage: "stage1", name: "Карбон", sym: "C", read: "це", sub: "вуглець", hard: true },
+    { id: 6, stage: "stage1", name: "Нітроген", sym: "N", read: "ен", sub: "азот", hard: true },
+    { id: 7, stage: "stage1", name: "Оксиген", sym: "O", read: "о", sub: "кисень", hard: true },
+    { id: 8, stage: "stage1", name: "Флуор", sym: "F", read: "флуор", sub: "фтор", hard: true },
+    { id: 9, stage: "stage1", name: "Натрій", sym: "Na", read: "натрій", sub: "натрій", hard: false },
+    { id: 10, stage: "stage1", name: "Магній", sym: "Mg", read: "магній", sub: "магній", hard: false },
+    { id: 11, stage: "stage1", name: "Алюміній", sym: "Al", read: "алюміній", sub: "алюміній", hard: false },
+    { id: 12, stage: "stage1", name: "Силіцій", sym: "Si", read: "силіцій", sub: "кремній", hard: true },
+    { id: 13, stage: "stage1", name: "Фосфор", sym: "P", read: "пе", sub: "фосфор", hard: true },
+    { id: 14, stage: "stage1", name: "Сульфур", sym: "S", read: "ес", sub: "сірка", hard: true },
+    { id: 15, stage: "stage1", name: "Хлор", sym: "Cl", read: "хлор", sub: "хлор", hard: false },
+    { id: 16, stage: "stage1", name: "Калій", sym: "K", read: "калій", sub: "калій", hard: false },
+    { id: 17, stage: "stage1", name: "Кальцій", sym: "Ca", read: "кальцій", sub: "кальцій", hard: false },
+    { id: 18, stage: "stage1", name: "Ванадій", sym: "V", read: "ванадій", sub: "ванадій", hard: false },
+    { id: 19, stage: "stage1", name: "Хром", sym: "Cr", read: "хром", sub: "хром", hard: false },
+    { id: 20, stage: "stage1", name: "Манган", sym: "Mn", read: "манган", sub: "марганець", hard: true },
+    { id: 21, stage: "stage1", name: "Ферум", sym: "Fe", read: "ферум", sub: "залізо", hard: true },
+    { id: 22, stage: "stage1", name: "Купрум", sym: "Cu", read: "купрум", sub: "мідь", hard: true },
+    { id: 23, stage: "stage1", name: "Цинк", sym: "Zn", read: "цинк", sub: "цинк", hard: false },
+    { id: 24, stage: "stage1", name: "Бром", sym: "Br", read: "бром", sub: "бром", hard: false },
+    { id: 25, stage: "stage1", name: "Стронцій", sym: "Sr", read: "стронцій", sub: "стронцій", hard: false },
+    { id: 26, stage: "stage1", name: "Аргентум", sym: "Ag", read: "аргентум", sub: "срібло", hard: true },
+    { id: 27, stage: "stage1", name: "Станум", sym: "Sn", read: "станум", sub: "олово", hard: true },
+    { id: 28, stage: "stage1", name: "Стибій", sym: "Sb", read: "стибій", sub: "стибій (сурма)", hard: false },
+    { id: 29, stage: "stage1", name: "Йод", sym: "I", read: "йод", sub: "йод", hard: false },
+    { id: 30, stage: "stage1", name: "Барій", sym: "Ba", read: "барій", sub: "барій", hard: false },
+    { id: 31, stage: "stage1", name: "Вольфрам", sym: "W", read: "вольфрам", sub: "вольфрам", hard: false },
+    { id: 32, stage: "stage1", name: "Аурум", sym: "Au", read: "аурум", sub: "золото", hard: true },
+    { id: 33, stage: "stage1", name: "Меркурій", sym: "Hg", read: "гідраргіум", sub: "ртуть", hard: true },
+    { id: 34, stage: "stage1", name: "Плюмбум", sym: "Pb", read: "плюмбум", sub: "свинець", hard: true },
+
+    // --- ЕТАП 2 (Наступні 38 елементів таблиці Менделєєва) ---
+    { id: 35, stage: "stage2", name: "Гелій", sym: "He", read: "гелій", sub: "гелій", hard: false },
+    { id: 36, stage: "stage2", name: "Неон", sym: "Ne", read: "неон", sub: "неон", hard: false },
+    { id: 37, stage: "stage2", name: "Аргон", sym: "Ar", read: "аргон", sub: "аргон", hard: false },
+    { id: 38, stage: "stage2", name: "Криптон", sym: "Kr", read: "криптон", sub: "криптон", hard: false },
+    { id: 39, stage: "stage2", name: "Ксенон", sym: "Xe", read: "ксенон", sub: "ксенон", hard: false },
+    { id: 40, stage: "stage2", name: "Радон", sym: "Rn", read: "радон", sub: "радон", hard: false },
+    { id: 41, stage: "stage2", name: "Скандій", sym: "Sc", read: "скандій", sub: "скандій", hard: false },
+    { id: 42, stage: "stage2", name: "Титан", sym: "Ti", read: "титан", sub: "титан", hard: false },
+    { id: 43, stage: "stage2", name: "Кобальт", sym: "Co", read: "кобальт", sub: "кобальт", hard: false },
+    { id: 44, stage: "stage2", name: "Нікель", sym: "Ni", read: "нікель", sub: "нікель", hard: false },
+    { id: 45, stage: "stage2", name: "Галій", sym: "Ga", read: "галій", sub: "галій", hard: false },
+    { id: 46, stage: "stage2", name: "Германій", sym: "Ge", read: "германій", sub: "германій", hard: false },
+    { id: 47, stage: "stage2", name: "Арсен", sym: "As", read: "арсен", sub: "миш'як (арсен)", hard: true },
+    { id: 48, stage: "stage2", name: "Селен", sym: "Se", read: "селен", sub: "селен", hard: false },
+    { id: 49, stage: "stage2", name: "Рубідій", sym: "Rb", read: "рубідій", sub: "рубідій", hard: false },
+    { id: 50, stage: "stage2", name: "Ітрій", sym: "Y", read: "ітрій", sub: "ітрій", hard: false },
+    { id: 51, stage: "stage2", name: "Цирконій", sym: "Zr", read: "цирконій", sub: "цирконій", hard: false },
+    { id: 52, stage: "stage2", name: "Ніобій", sym: "Nb", read: "ніобій", sub: "ніобій", hard: false },
+    { id: 53, stage: "stage2", name: "Молібден", sym: "Mo", read: "молібден", sub: "молібден", hard: false },
+    { id: 54, stage: "stage2", name: "Технецій", sym: "Tc", read: "технецій", sub: "технецій", hard: false },
+    { id: 55, stage: "stage2", name: "Рутеній", sym: "Ru", read: "рутеній", sub: "рутеній", hard: false },
+    { id: 56, stage: "stage2", name: "Родій", sym: "Rh", read: "родій", sub: "родій", hard: false },
+    { id: 57, stage: "stage2", name: "Паладій", sym: "Pd", read: "паладій", sub: "паладій", hard: false },
+    { id: 58, stage: "stage2", name: "Кадмій", sym: "Cd", read: "кадмій", sub: "кадмій", hard: false },
+    { id: 59, stage: "stage2", name: "Індій", sym: "In", read: "індій", sub: "індій", hard: false },
+    { id: 60, stage: "stage2", name: "Телур", sym: "Te", read: "телур", sub: "телур", hard: false },
+    { id: 61, stage: "stage2", name: "Цезій", sym: "Cs", read: "цезій", sub: "цезій", hard: false },
+    { id: 62, stage: "stage2", name: "Лантан", sym: "La", read: "лантан", sub: "лантан", hard: false },
+    { id: 63, stage: "stage2", name: "Гафній", sym: "Hf", read: "гафній", sub: "гафній", hard: false },
+    { id: 64, stage: "stage2", name: "Тантал", sym: "Ta", read: "тантал", sub: "тантал", hard: false },
+    { id: 65, stage: "stage2", name: "Реній", sym: "Re", read: "реній", sub: "реній", hard: false },
+    { id: 66, stage: "stage2", name: "Осмій", sym: "Os", read: "осмій", sub: "осмій", hard: false },
+    { id: 67, stage: "stage2", name: "Іридій", sym: "Ir", read: "іридій", sub: "іридій", hard: false },
+    { id: 68, stage: "stage2", name: "Платина", sym: "Pt", read: "платина", sub: "платина", hard: false },
+    { id: 69, stage: "stage2", name: "Талій", sym: "Tl", read: "талій", sub: "талій", hard: false },
+    { id: 70, stage: "stage2", name: "Бісмут", sym: "Bi", read: "бісмут", sub: "бісмут (вісмут)", hard: true },
+    { id: 71, stage: "stage2", name: "Полоній", sym: "Po", read: "полоній", sub: "полоній", hard: false },
+    { id: 72, stage: "stage2", name: "Астат", sym: "At", read: "астат", sub: "астат", hard: false },
+
+    // --- ЕТАП 3 (Решта 38 елементів: рідкісноземельні, актиноїди та важкі) ---
+    { id: 73, stage: "stage3", name: "Францій", sym: "Fr", read: "францій", sub: "францій", hard: false },
+    { id: 74, stage: "stage3", name: "Радій", sym: "Ra", read: "радій", sub: "радій", hard: false },
+    { id: 75, stage: "stage3", name: "Актиній", sym: "Ac", read: "актиній", sub: "актиній", hard: false },
+    { id: 76, stage: "stage3", name: "Торій", sym: "Th", read: "торій", sub: "торій", hard: false },
+    { id: 77, stage: "stage3", name: "Протактиній", sym: "Pa", read: "протактиній", sub: "протактиній", hard: false },
+    { id: 78, stage: "stage3", name: "Уран", sym: "U", read: "уран", sub: "уран", hard: false },
+    { id: 79, stage: "stage3", name: "Нептуній", sym: "Np", read: "нептуній", sub: "нептуній", hard: false },
+    { id: 80, stage: "stage3", name: "Плутоній", sym: "Pu", read: "плутоній", sub: "плутоній", hard: false },
+    { id: 81, stage: "stage3", name: "Америцій", sym: "Am", read: "америцій", sub: "америцій", hard: false },
+    { id: 82, stage: "stage3", name: "Кюрій", sym: "Cm", read: "кюрій", sub: "кюрій", hard: false },
+    { id: 83, stage: "stage3", name: "Берклій", sym: "Bk", read: "берклій", sub: "берклій", hard: false },
+    { id: 84, stage: "stage3", name: "Каліфорній", sym: "Cf", read: "каліфорній", sub: "каліфорній", hard: false },
+    { id: 85, stage: "stage3", name: "Ейнштейній", sym: "Es", read: "ейнштейній", sub: "ейнштейній", hard: false },
+    { id: 86, stage: "stage3", name: "Фермій", sym: "Fm", read: "фермій", sub: "фермій", hard: false },
+    { id: 87, stage: "stage3", name: "Менделєєвій", sym: "Md", read: "менделєєвій", sub: "менделєєвій", hard: false },
+    { id: 88, stage: "stage3", name: "Нобелій", sym: "No", read: "нобелій", sub: "нобелій", hard: false },
+    { id: 89, stage: "stage3", name: "Лоуренсій", sym: "Lr", read: "лоуренсій", sub: "лоуренсій", hard: false },
+    { id: 90, stage: "stage3", name: "Церій", sym: "Ce", read: "церій", sub: "церій", hard: false },
+    { id: 91, stage: "stage3", name: "Празеодим", sym: "Pr", read: "празеодим", sub: "празеодим", hard: false },
+    { id: 92, stage: "stage3", name: "Неодим", sym: "Nd", read: "неодим", sub: "неодим", hard: false },
+    { id: 93, stage: "stage3", name: "Прометій", sym: "Pm", read: "прометій", sub: "прометій", hard: false },
+    { id: 94, stage: "stage3", name: "Самарій", sym: "Sm", read: "самарій", sub: "самарій", hard: false },
+    { id: 95, stage: "stage3", name: "Європій", sym: "Eu", read: "європій", sub: "європій", hard: false },
+    { id: 96, stage: "stage3", name: "Гадоліній", sym: "Gd", read: "гадоліній", sub: "гадоліній", hard: false },
+    { id: 97, stage: "stage3", name: "Тербій", sym: "Tb", read: "тербій", sub: "тербій", hard: false },
+    { id: 98, stage: "stage3", name: "Диспрозій", sym: "Dy", read: "диспрозій", sub: "диспрозій", hard: false },
+    { id: 99, stage: "stage3", name: "Гольмій", sym: "Ho", read: "гольмій", sub: "гольмій", hard: false },
+    { id: 100, stage: "stage3", name: "Ербій", sym: "Er", read: "ербій", sub: "ербій", hard: false },
+    { id: 101, stage: "stage3", name: "Тулій", sym: "Tm", read: "тулій", sub: "тулій", hard: false },
+    { id: 102, stage: "stage3", name: "Ітербій", sym: "Yb", read: "ітербій", sub: "ітербій", hard: false },
+    { id: 103, stage: "stage3", name: "Лютецій", sym: "Lu", read: "лютецій", sub: "лютецій", hard: false },
+    { id: 104, stage: "stage3", name: "Резерфордій", sym: "Rf", read: "резерфордій", sub: "резерфордій", hard: false },
+    { id: 105, stage: "stage3", name: "Дубній", sym: "Db", read: "дубній", sub: "дубній", hard: false },
+    { id: 106, stage: "stage3", name: "Сіборгій", sym: "Sg", read: "сіборгій", sub: "сіборгій", hard: false },
+    { id: 107, stage: "stage3", name: "Борій", sym: "Bh", read: "борій", sub: "борій", hard: false },
+    { id: 108, stage: "stage3", name: "Гасій", sym: "Hs", read: "гасій", sub: "гасій", hard: false },
+    { id: 109, stage: "stage3", name: "Майтнерій", sym: "Mt", read: "майтнерій", sub: "майтнерій", hard: false },
+    { id: 110, stage: "stage3", name: " Коперницій", sym: "Cn", read: "коперницій", sub: "коперницій", hard: false }
 ];
 
 // --- МАТРИЦЯ СХОЖИХ ЕЛЕМЕНТІВ-ПАСТОК (КОНФУЗОРІВ) ---
 const confusableMap = {
-    "H":  ["N", "O", "C", "Hg", "F"],
-    "Li": ["Na", "K", "Be", "Al", "Si"],
-    "Be": ["B", "Br", "Ba", "Mg", "Li"],
-    "B":  ["Be", "Br", "Ba", "C", "P"],
-    "C":  ["Ca", "Cl", "Cr", "Cu", "K", "Si"],
-    "N":  ["Na", "H", "O", "P", "S", "Mn"],
-    "O":  ["H", "N", "C", "S", "F"],
-    "F":  ["Fe", "P", "Cl", "Br", "I"],
-    "Na": ["N", "K", "Mg", "Ca", "Li"],
-    "Mg": ["Mn", "Hg", "Ag", "Na", "Ca"],
-    "Al": ["Ag", "Au", "Fe", "Zn", "Mg"],
-    "Si": ["S", "Sn", "Sr", "Sb", "C"],
-    "P":  ["F", "Fe", "Pb", "S", "N"],
-    "S":  ["Si", "Sn", "Sr", "Sb", "C", "P"],
-    "Cl": ["C", "Cr", "Ca", "Cu", "F", "Br"],
-    "K":  ["Ca", "C", "Cu", "Cr", "Na"],
-    "Ca": ["K", "C", "Cl", "Cu", "Cr", "Ba"],
-    "V":  ["W", "Zn", "Cr", "Mn", "Fe"],
-    "Cr": ["Cl", "Cu", "C", "Ca", "Mn", "Fe"],
-    "Mn": ["Mg", "Hg", "Fe", "Cr", "Cu", "N"],
-    "Fe": ["F", "P", "Cu", "Zn", "Mn", "Pb"],
-    "Cu": ["Cr", "Ca", "C", "Cl", "K", "Fe", "Ag"],
-    "Zn": ["Sn", "Sr", "Cu", "Fe", "Al", "V"],
-    "Br": ["B", "Be", "Ba", "Cl", "I", "Cr"],
-    "Sr": ["Sn", "Sb", "Si", "S", "Cr", "Br", "Ba"],
-    "Ag": ["Au", "Al", "Hg", "Mg", "Cu", "Pb"],
-    "Sn": ["Sr", "Sb", "Si", "S", "Zn", "Pb"],
-    "Sb": ["Sn", "Sr", "Si", "S", "Pb", "Ba"],
-    "I":  ["Cl", "Br", "F", "H", "O", "V"],
-    "Ba": ["B", "Be", "Br", "Ca", "Sr", "Pb"],
-    "W":  ["V", "Fe", "Cr", "Zn", "Mn"],
-    "Au": ["Ag", "Al", "Cu", "Hg", "Pb"],
-    "Hg": ["Ag", "Au", "Mg", "Mn", "Pb", "H"],
-    "Pb": ["P", "Sn", "Sb", "Hg", "Fe", "Ag", "Au"]
+    "H":  ["He", "N", "O", "C", "Hg"],
+    "Li": ["La", "Lu", "Lr", "Na", "K", "Be"],
+    "Be": ["B", "Br", "Ba", "Bi", "Bh", "Bk"],
+    "B":  ["Be", "Br", "Ba", "Bi", "Bh", "C"],
+    "C":  ["Ca", "Cl", "Cr", "Cu", "Co", "Cd", "Cs", "Ce"],
+    "N":  ["Na", "Ne", "Ni", "Nb", "Nd", "Np", "No"],
+    "O":  ["Os", "H", "N", "C", "S"],
+    "F":  ["Fe", "Fr", "Fm", "P", "Cl"],
+    "Na": ["N", "Ne", "Ni", "Nb", "K", "Mg"],
+    "Mg": ["Mn", "Mo", "Md", "Mt", "Hg", "Ag"],
+    "Al": ["Ag", "Au", "Ar", "As", "At", "Ac", "Am"],
+    "Si": ["S", "Sn", "Sr", "Sb", "Sc", "Se", "Sm", "Sg"],
+    "P":  ["Pb", "Pt", "Pd", "Po", "Pa", "Pu", "Pr", "Pm", "F"],
+    "S":  ["Si", "Sn", "Sr", "Sb", "Sc", "Se", "Sm"],
+    "Cl": ["C", "Cr", "Ca", "Cu", "Co", "Cd", "Cs"],
+    "K":  ["Kr", "Ca", "C", "Cu", "Cr", "Na"],
+    "Ca": ["K", "C", "Cl", "Cu", "Cr", "Co", "Cd", "Cs"],
+    "V":  ["W", "Y", "Zn", "Cr", "Mn"],
+    "Cr": ["Cl", "Cu", "C", "Ca", "Co", "Cd", "Cs"],
+    "Mn": ["Mg", "Mo", "Md", "Mt", "Fe", "Cr"],
+    "Fe": ["F", "Fr", "Fm", "P", "Cu", "Zn", "Mn"],
+    "Cu": ["Cr", "Ca", "C", "Cl", "Co", "Cd", "Cs", "Cm"],
+    "Zn": ["Zr", "Sn", "Sr", "Cu", "Fe"],
+    "Br": ["B", "Be", "Ba", "Bi", "Bk", "Bh", "Cl"],
+    "Sr": ["Sn", "Sb", "Si", "S", "Sc", "Se", "Sm"],
+    "Ag": ["Au", "Al", "Ar", "As", "Hg", "Mg"],
+    "Sn": ["Sr", "Sb", "Si", "S", "Sc", "Se", "Sm", "Zn"],
+    "Sb": ["Sn", "Sr", "Si", "S", "Sc", "Se", "Bi"],
+    "I":  ["In", "Ir", "Y", "Yb", "Cl", "Br"],
+    "Ba": ["B", "Be", "Br", "Bi", "Bk", "Bh", "Ca", "Ra"],
+    "W":  ["V", "U", "Y", "Fe", "Cr"],
+    "Au": ["Ag", "Al", "Ar", "As", "Cu", "Pt", "Hg"],
+    "Hg": ["Ag", "Au", "Mg", "Mn", "Ho", "Hf", "Hs"],
+    "Pb": ["P", "Pt", "Pd", "Po", "Bi", "Sn", "Hg"]
 };
 
 const modesList = ["name_to_sym", "sym_to_name", "name_to_sub", "sym_to_read"];
+let currentStage = "stage1";
 let pool = [], currentIndex = 0, score = 0, mistakes = [];
 let selectedMode = "all_mix", currentQuestionMode = "name_to_sym";
 let playerName = "", isRetryRun = false;
@@ -382,6 +492,29 @@ window.onload = () => {
     if (savedName) document.getElementById("player-name").value = savedName;
     renderLeaderboard();
 };
+
+function selectStage(stage) {
+    currentStage = stage;
+    document.querySelectorAll(".stage-btn").forEach(b => b.classList.remove("active"));
+    if (stage === "stage1") document.getElementById("st-1").classList.add("active");
+    if (stage === "stage2") document.getElementById("st-2").classList.add("active");
+    if (stage === "stage3") document.getElementById("st-3").classList.add("active");
+    if (stage === "all") document.getElementById("st-all").classList.add("active");
+
+    const stageNames = {
+        "stage1": "Етап 1",
+        "stage2": "Етап 2",
+        "stage3": "Етап 3",
+        "all": "Загальний турнір"
+    };
+    document.getElementById("lb-title").innerText = `🏆 Таблиця лідерів (${stageNames[stage]})`;
+    renderLeaderboard();
+}
+
+function getStageElements() {
+    if (currentStage === "all") return [...allElements];
+    return allElements.filter(e => e.stage === currentStage);
+}
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
@@ -421,8 +554,9 @@ function startQuiz(customPool = null) {
         pool = shuffle(customPool);
         isRetryRun = true;
     } else {
-        pool = hardOnly ? elements.filter(e => e.hard) : [...elements];
-        pool = shuffle(pool);
+        const stageList = getStageElements();
+        const filtered = hardOnly ? stageList.filter(e => e.hard) : stageList;
+        pool = shuffle(filtered.length > 0 ? filtered : stageList);
         isRetryRun = false;
     }
 
@@ -443,9 +577,9 @@ function getFields(item, qMode) {
     if (qMode === "sym_to_read") return { q: item.sym, a: item.read, label: "Як читається цей елемент у формулах:", key: "read" };
 }
 
-// --- РОЗУМНИЙ ПІДБІР СХОЖИХ ПАСТОК ---
 function generateSmartWrongOptions(current, qMode, correctAns, key) {
     let traps = [];
+    const stageElements = getStageElements();
     const addTrap = (val) => {
         if (val && val !== correctAns && !traps.includes(val)) traps.push(val);
     };
@@ -464,16 +598,16 @@ function generateSmartWrongOptions(current, qMode, correctAns, key) {
 
     const similarSyms = shuffle(confusableMap[current.sym] || []);
     for (const sym of similarSyms) {
-        const simEl = elements.find(e => e.sym === sym);
+        const simEl = stageElements.find(e => e.sym === sym) || allElements.find(e => e.sym === sym);
         if (simEl) addTrap(simEl[key]);
     }
 
-    const sameFirstLetter = shuffle(elements.filter(e => 
+    const sameFirstLetter = shuffle(stageElements.filter(e => 
         e[key][0].toLowerCase() === correctAns[0].toLowerCase()
     ));
     sameFirstLetter.forEach(e => addTrap(e[key]));
 
-    const fallback = shuffle(elements.map(e => e[key]));
+    const fallback = shuffle(stageElements.map(e => e[key]));
     fallback.forEach(val => addTrap(val));
 
     return traps.slice(0, 3);
@@ -564,7 +698,7 @@ async function showResults() {
 function getBoardKey() {
     const mode = document.getElementById("mode-select").value;
     const hard = document.getElementById("hard-only").checked ? "hard" : "full";
-    return `chem_lb_${mode}_${hard}`;
+    return `chem_lb_${currentStage}_${mode}_${hard}`;
 }
 
 async function fetchScores() {
@@ -626,7 +760,7 @@ async function renderLeaderboard(manualRefresh = false) {
     let list = await fetchScores();
 
     if (list.length === 0) {
-        container.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:12px;">Ще ніхто не проходив цей режим. Будь першим!</div>`;
+        container.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:12px;">Ще ніхто не проходив цей етап. Будь першим!</div>`;
         return;
     }
 
@@ -671,7 +805,7 @@ async function handleHeartClick() {
 
     if (heartClicks >= 3) {
         heartClicks = 0;
-        const pin = prompt("Секретне меню тата Мар'яна 🛠️\nВведіть 404, щоб очистити поточну таблицю лідерів:");
+        const pin = prompt("Секретне меню тата Мар'яна 🛠️\nВведіть 404, щоб очистити таблицю лідерів поточного етапу:");
         if (pin === "404") {
             const key = getBoardKey();
             localStorage.removeItem(key);
@@ -681,7 +815,7 @@ async function handleHeartClick() {
                 } catch (e) { console.error(e); }
             }
             renderLeaderboard();
-            alert("✅ Таблицю лідерів для цього режиму успішно очищено!");
+            alert("✅ Таблицю лідерів для цього етапу успішно очищено!");
         }
     }
 }
