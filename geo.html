@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Географічний Турнір • 7 клас (§ 8–20)</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --bg: #f0f9ff;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body {
+            margin: 0; padding: 16px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #dcfce7 100%);
+            color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        }
+        .container {
+            background: var(--card); width: 100%; max-width: 640px; padding: 26px;
+            border-radius: 22px; box-shadow: 0 12px 30px rgba(2, 132, 199, 0.12); position: relative;
+        }
+        .subject-nav {
+            display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; padding-right: 40px;
+        }
+        .subj-link {
+            text-decoration: none; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;
+            font-weight: 700; border: 1.5px solid #cbd5e1; color: var(--muted); background: #f8fafc; transition: 0.2s;
+        }
+        .subj-link:hover { border-color: var(--primary); color: var(--primary); }
+        .subj-link.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .sound-toggle {
+            position: absolute; top: 18px; right: 18px; width: 42px; height: 42px;
+            border-radius: 50%; border: 1.5px solid #cbd5e1; background: #f8fafc;
+            cursor: pointer; font-size: 1.25rem; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; padding: 0;
+        }
+        .sound-toggle:hover { background: #e2e8f0; transform: scale(1.06); }
+        .sound-toggle.muted { opacity: 0.6; background: #fee2e2; border-color: #fca5a5; }
+
+        h1 { margin: 0 0 6px; font-size: 1.55rem; text-align: center; color: var(--primary); }
+        .sub { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; }
+        
+        .controls {
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px;
+            background: #f8fafc; padding: 16px; border-radius: 14px; border: 1px solid #e2e8f0;
+        }
+        label { font-size: 0.92rem; font-weight: 600; color: #334155; display: block; margin-bottom: 5px; }
+        input[type="text"] {
+            width: 100%; padding: 11px 14px; border-radius: 10px;
+            border: 1.5px solid #cbd5e1; font-size: 1rem; outline: none; transition: 0.2s;
+        }
+        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+
+        .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .topic-btn {
+            padding: 10px; border-radius: 10px; border: 1.5px solid #cbd5e1; background: #fff;
+            font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; color: var(--text);
+        }
+        .topic-btn:hover { border-color: var(--primary); background: #f8fafc; }
+        .topic-btn.active {
+            background: #e0f2fe; border-color: var(--primary); color: var(--primary-dark);
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+        }
+        .topic-btn.full-width { grid-column: span 2; font-size: 0.92rem; }
+
+        .stats {
+            display: flex; justify-content: space-between; align-items: center; background: #f8fafc;
+            padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; color: var(--muted); margin-bottom: 14px;
+        }
+        .timer-badge { color: var(--primary); font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+
+        .q-box {
+            background: #f0f9ff; border: 2px solid #bae6fd; border-radius: 16px;
+            padding: 20px 16px; margin-bottom: 16px; font-size: 1.12rem; font-weight: 700; line-height: 1.4;
+        }
+        .q-topic-tag { font-size: 0.78rem; color: var(--primary); text-transform: uppercase; margin-bottom: 6px; font-weight: 800; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .opt-btn {
+            text-align: left; padding: 14px 16px; border-radius: 12px; border: 2px solid #e2e8f0;
+            background: #fff; font-size: 0.96rem; font-weight: 600; color: var(--text); cursor: pointer; transition: 0.15s;
+        }
+        .opt-btn:hover:not(:disabled) { border-color: var(--primary); background: #f8fafc; }
+        .opt-btn.correct { background: #dcfce7; border-color: var(--success); color: #14532d; }
+        .opt-btn.wrong { background: #fee2e2; border-color: var(--danger); color: #7f1d1d; }
+        
+        .main-btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: var(--primary); color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .main-btn:hover { background: var(--primary-dark); }
+        
+        .explain-box {
+            margin-top: 12px; padding: 12px; border-radius: 10px; background: #fefce8;
+            border: 1px solid #fde047; font-size: 0.9rem; color: #713f12; line-height: 1.35;
+        }
+
+        .leaderboard { margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        .lb-header { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .lb-header h3 { margin: 0; font-size: 1rem; color: #334155; }
+        .refresh-btn {
+            padding: 5px 10px; font-size: 0.82rem; background: #f1f5f9;
+            border: 1px solid #cbd5e1; border-radius: 8px; color: #334155; cursor: pointer; font-weight: 600;
+        }
+        .refresh-btn:hover { background: #e2e8f0; }
+
+        .lb-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        .lb-table th { text-align: left; color: var(--muted); padding: 6px 8px; border-bottom: 2px solid #e2e8f0; }
+        .lb-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+        .lb-table tr:nth-child(1) td { font-weight: 700; color: #b45309; background: #fffbeb; }
+        .badge-attempts {
+            background: #e2e8f0; color: #475569; padding: 2px 6px;
+            border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+        }
+
+        .mistakes {
+            max-height: 220px; overflow-y: auto; background: #fff1f2; padding: 12px;
+            border-radius: 12px; margin: 14px 0; font-size: 0.9rem; text-align: left;
+        }
+        .footer-signature {
+            margin-top: 22px; text-align: center; font-size: 0.85rem;
+            color: var(--muted); font-weight: 500; user-select: none;
+        }
+        .footer-signature span { color: #e11d48; cursor: pointer; padding: 4px; }
+        .hidden { display: none; }
+        @media (max-width: 500px) {
+            .topic-grid { grid-template-columns: 1fr; }
+            .topic-btn.full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="subject-nav">
+        <a href="index.html" class="subj-link">🧪 Хімія</a>
+        <a href="geo.html" class="subj-link active">🌍 Географія</a>
+    </div>
+    <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Увімкнути/вимкнути звук">🔊</button>
+    <h1>🌍 Географічний Турнір</h1>
+    <div class="sub">7 клас (§ 8–20): Тектоніка, ери, повітряні маси, клімат, зони та населення</div>
+
+    <div id="setup-view">
+        <div class="controls">
+            <div>
+                <label for="player-name">Твоє ім'я або нікнейм:</label>
+                <input type="text" id="player-name" placeholder="Наприклад: Софія" maxlength="25">
+            </div>
+
+            <div>
+                <label>Обери тему змагання:</label>
+                <div class="topic-grid">
+                    <button type="button" class="topic-btn full-width active" onclick="setTopic('all', this)">🏆 Усі теми разом (§ 8–20 • 36 питань)</button>
+                    <button type="button" class="topic-btn" onclick="setTopic('tectonics', this)">🌋 § 8–10: Ери, літосфера, рельєф (12)</button>
+                    <button type="button" class="topic-btn" onclick="setTopic('climate', this)">🌪️ § 11–13: Повітряні маси і клімат (11)</button>
+                    <button type="button" class="topic-btn" onclick="setTopic('nature', this)">🌲 § 14–16: Зони, гори, водні маси (7)</button>
+                    <button type="button" class="topic-btn" onclick="setTopic('people', this)">👥 § 17–20: Населення та оболонка (6)</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="main-btn" onclick="startQuiz()">🚀 Почати змагання</button>
+
+        <div class="leaderboard">
+            <div class="lb-header">
+                <h3 id="lb-title">🏆 Таблиця лідерів (Усі теми)</h3>
+                <button class="refresh-btn" onclick="renderLeaderboard(true)">🔄 Оновити</button>
+            </div>
+            <div id="lb-content">Завантаження...</div>
+        </div>
+    </div>
+
+    <div id="quiz-view" class="hidden">
+        <div class="stats">
+            <span id="player-badge">👤 Гравець</span>
+            <span id="q-progress">1 / 36</span>
+            <span class="timer-badge" id="q-timer">⏱ 00:00</span>
+        </div>
+        <div class="q-box">
+            <div class="q-topic-tag" id="q-tag">Тема</div>
+            <div id="q-text">Питання</div>
+        </div>
+        <div class="options" id="opt-list"></div>
+        <div id="exp-box" class="explain-box hidden"></div>
+        <button id="next-btn" class="main-btn hidden" style="margin-top:14px;" onclick="nextQ()">Далі ➔</button>
+    </div>
+
+    <div id="res-view" class="hidden" style="text-align:center;">
+        <h2 style="margin:0;">Фініш! 🎉</h2>
+        <div style="font-size:2.6rem; font-weight:800; color:var(--primary); margin:6px 0;" id="res-score">36 / 36</div>
+        <div style="color:var(--muted); font-weight:600; margin-bottom:8px;" id="res-time">⏱ Час: 00:00</div>
+        <p id="record-msg" style="font-weight:600; color:var(--success); margin:6px 0;"></p>
+        
+        <div id="mistakes-box" class="mistakes hidden"></div>
+        
+        <button id="retry-btn" class="main-btn hidden" style="background:var(--warning); margin-bottom:10px;" onclick="retryMistakes()">🔧 Пройти лише помилки (поза рейтингом)</button>
+        <button class="main-btn" onclick="goHome()">🏠 На головну та до рейтингу</button>
+    </div>
+
+    <div class="footer-signature">
+        Створено з любов'ю, тато Мар'ян К. <span id="secret-heart" onclick="handleHeartClick()">❤️</span>
+    </div>
+</div>
+
+<script>
+const CLOUD_DB_URL = "https://chemistry-9d2fa-default-rtdb.firebaseio.com/scores.json";
+
+let soundEnabled = localStorage.getItem("geo_sound") !== "off";
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+}
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem("geo_sound", soundEnabled ? "on" : "off");
+    updateSoundBtn();
+    if (soundEnabled) playTone(660, "sine", 0.1, 0);
+}
+
+function updateSoundBtn() {
+    const btn = document.getElementById("sound-btn");
+    btn.innerText = soundEnabled ? "🔊" : "🔇";
+    btn.classList.toggle("muted", !soundEnabled);
+}
+
+function playTone(freq, type, duration, delay = 0, vol = 0.16, slideTo = null) {
+    if (!soundEnabled) return;
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, ctx.currentTime + delay + duration);
+        gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + duration);
+    } catch (e) {}
+}
+
+function playRandomSuccessSound() {
+    if (!soundEnabled) return;
+    const v = Math.floor(Math.random() * 5);
+    if (v === 0) { playTone(987.77, "square", 0.08, 0, 0.12); playTone(1318.51, "square", 0.28, 0.08, 0.12); }
+    else if (v === 1) { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, "triangle", 0.14, i * 0.06, 0.2)); }
+    else if (v === 2) { playTone(320, "sine", 0.28, 0, 0.2, 1150); }
+    else if (v === 3) { playTone(880, "sine", 0.12, 0, 0.2); playTone(1174.66, "sine", 0.25, 0.1, 0.2); }
+    else { playTone(587.33, "triangle", 0.1, 0, 0.18); playTone(587.33, "triangle", 0.1, 0.11, 0.18); playTone(880, "triangle", 0.3, 0.22, 0.22); }
+}
+
+function playRandomWrongSound() {
+    if (!soundEnabled) return;
+    const v = Math.floor(Math.random() * 4);
+    if (v === 0) { [300, 280, 260, 230].forEach((f, i) => playTone(f, "sawtooth", 0.16, i * 0.14, 0.12)); }
+    else if (v === 1) { playTone(550, "triangle", 0.35, 0, 0.2, 120); }
+    else if (v === 2) { playTone(160, "sawtooth", 0.15, 0, 0.14); playTone(130, "sawtooth", 0.25, 0.15, 0.14); }
+    else { playTone(220, "sine", 0.12, 0, 0.2, 420); playTone(420, "sine", 0.22, 0.12, 0.2, 160); }
+}
+
+function playFinishFanfare() {
+    if (!soundEnabled) return;
+    const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+    const delays = [0, 0.1, 0.2, 0.3, 0.45, 0.58];
+    const durs = [0.1, 0.1, 0.1, 0.14, 0.12, 0.4];
+    notes.forEach((f, i) => playTone(f, "triangle", durs[i], delays[i], 0.22));
+}
+
+const questions = [
+    { cat: "tectonics", tag: "§ 8–9 • Науки про Землю", q: "Яка наука вивчає загальну історію розвитку Землі за шарами гірських порід?", a: "Геологія", w: ["Тектоніка", "Кліматологія", "Картографія"], exp: "У зошиті записано: Геологія — це наука, яка вивчає історію Землі." },
+    { cat: "tectonics", tag: "§ 8–9 • Літосферні плити", q: "Яка наука вивчає будову земної кори, літосферні плити та їхні переміщення?", a: "Тектоніка", w: ["Геоморфологія", "Метеорологія", "Палеонтологія"], exp: "Тектоніка вивчає літосферні плити (великі блоки літосфери, розділені глибинними розломами) та їхні рухи." },
+    { cat: "tectonics", tag: "§ 8–9 • Вік порід", q: "Як визначають відносний вік гірських порід?", a: "За рештками скам'янілих тварин і рослин та послідовністю залягання шарів", w: ["Лише за температурою повітря", "За глибиною Світового океану", "За солоністю води"], exp: "Відносний вік визначають за скам'янілими рештками організмів: нижні шари порід є давнішими за верхні." },
+    { cat: "tectonics", tag: "§ 8–9 • Геохронологічна шкала", q: "У якій послідовності розташовані геологічні ери від найдавнішої до сучасної?", a: "Архейська ➔ Протерозойська ➔ Палеозойська ➔ Мезозойська ➔ Кайнозойська", w: ["Кайнозойська ➔ Мезозойська ➔ Палеозойська ➔ Архейська", "Палеозойська ➔ Архейська ➔ Мезозойська ➔ Протерозойська ➔ Кайнозойська", "Мезозойська ➔ Протерозойська ➔ Кайнозойська ➔ Архейська"], exp: "Архей і Протерозой (докембрій) — найдавніші, далі Палеозой (давнє життя), Мезозой (середнє) і Кайнозой (нове життя)." },
+    { cat: "tectonics", tag: "§ 8–9 • Геологічні періоди", q: "У яку геологічну еру (до якої належать палеогеновий, неогеновий та антропогеновий періоди) утворилися молоді гори Карпати, Альпи, Гімалаї та Анди?", a: "Кайнозойську (епоха альпійської складчастості)", w: ["Архейську (докембрій)", "Палеозойську (герцинська складчастість)", "Мезозойську (крейдовий період)"], exp: "Кайнозойська ера — це сучасна ера, коли відбулася альпійська складчастість і з'явилася людина (антропоген)." },
+    { cat: "tectonics", tag: "§ 8–9 • Геологічні періоди", q: "До якої геологічної ери належать тріасовий, юрський та крейдовий періоди (доба динозаврів і формування Кордильєр)?", a: "Мезозойської", w: ["Палеозойської", "Кайнозойської", "Архейської"], exp: "Тріас, юра і крейда — це три періоди мезозойської ери." },
+    { cat: "tectonics", tag: "§ 8–9 • Рухи літосферних плит", q: "Що утворюється при горизонтальному сходженні (зіткненні) двох материкових літосферних плит?", a: "Складчасті гори", w: ["Серединно-океанічні хребти", "Глибоководні жолоби", "Плоскі низовини"], exp: "За схемою в зошиті: сходження плит на суходолі утворює гори, розходження в океані — серединно-океанічні хребти, а занурення — глибоководні жолоби." },
+    { cat: "tectonics", tag: "§ 8–10 • Тектонічні структури", q: "Як називаються давні, відносно стійкі та вирівняні ділянки земної кори, що мають двошарову будову (кристалічний фундамент і осадовий чохол)?", a: "Платформи", w: ["Області складчастості (рухомі пояси)", "Глибоководні жолоби", "Серединно-океанічні хребти"], exp: "Платформи — це стійкі ділянки земної кори, яким у рельєфі відповідають великі рівнини." },
+    { cat: "tectonics", tag: "§ 8–10 • Будова платформи", q: "Як називається ділянка платформи, де кристалічні породи фундаменту виходять на поверхню (у рельєфі їй відповідають височини та плоскогір'я)?", a: "Кристалічний щит", w: ["Плита (вкрита осадовим чохлом)", "Складчастий пояс", "Западина"], exp: "Щитам відповідають височини та плоскогір'я (наприклад, Гвіанське, Бразильське), а плитам — низовини (Амазонська)." },
+    { cat: "tectonics", tag: "§ 10 • Практична робота", q: "Які форми рельєфу відповідають Північноамериканській платформі (щиту) та Східноєвропейській платформі?", a: "Лаврентійська височина та Східноєвропейська рівнина", w: ["Гори Кордильєри та Альпи", "Гори Анди та Атлас", "Великий Вододільний хребет"], exp: "На щиті Північноамериканської платформи лежить Лаврентійська височина, а на Східноєвропейській платформі — Східноєвропейська рівнина." },
+    { cat: "tectonics", tag: "§ 10 • Практична робота", q: "Які гори утворилися в області герцинської складчастості в Австралії та альпійської складчастості в Африці?", a: "Великий Вододільний хребет (Австралія) та гори Атлас (Африка)", w: ["Кордильєри та Анди", "Піренеї та Карпати", "Гімалаї та Памір"], exp: "За таблицею в зошиті: в Австралії область герцинської складчастості — це Великий Вододільний хребет, а в Африці альпійської — гори Атлас." },
+    { cat: "tectonics", tag: "§ 10 • Корисні копалини", q: "Де найчастіше залягають рудні (магматичні й метаморфічні) корисні копалини, а де — паливні осадові (нафта, газ, вугілля)?", a: "Рудні — у горах та на кристалічних щитах; нафта і газ — в осадовому чохлі на плитах платформ", w: ["Нафта і газ — лише на вершинах високих гір", "Рудні — лише в осадовому чохлі низовин", "Корисні копалини не залежать від будови земної кори"], exp: "Руди пов'язані з магматичними породами (щити і складчасті гори), а паливні копалини — з осадовим чохлом плит." },
+
+    { cat: "climate", tag: "§ 11–12 • Повітряні маси", q: "Що називають повітряними масами?", a: "Великі об'єми повітря в тропосфері з однорідними властивостями (температурою, вологістю, запиленістю)", w: ["Будь-який легкий вітерець на березі моря", "Хмари у стратосфері на висоті 50 км", "Тільки урагани і смерчі"], exp: "Повітряні маси формуються над певною територією (океаном чи материком) і визначають погоду та клімат." },
+    { cat: "climate", tag: "§ 11–12 • Типи повітряних мас", q: "Які 4 основні типи повітряних мас виділяють за географічною широтою їх формування?", a: "Екваторіальні, тропічні, помірні, арктичні (антарктичні)", w: ["Субекваторіальні, субтропічні, мусонні, пасатні", "Морські, гірські, лісові, пустельні", "Циклонні та антициклонні"], exp: "Чотири основні типи ПМ відповідають основним кліматичним поясам Землі." },
+    { cat: "climate", tag: "§ 11–12 • Повітряні маси", q: "Які властивості мають екваторіальні повітряні маси (ЕПМ) та континентальні тропічні повітряні маси (ТПМ)?", a: "Екваторіальні — жаркі й вологі цілий рік; континентальні тропічні — жаркі й дуже сухі", w: ["Екваторіальні — холодні й сухі; тропічні — морозні", "Обидві маси завжди холодні та приносять сніг", "Екваторіальні — сухі без опадів; тропічні — найвологіші"], exp: "Над екватором повітря жарке й вологе (щоденні зливи), а над тропічними пустелями (Сахара) — жарке й сухе." },
+    { cat: "climate", tag: "§ 11–12 • Повітряні маси", q: "Чим морські повітряні маси відрізняються від континентальних повітряних мас тієї ж широти?", a: "Вони містять більше вологи, приносять опади і роблять зиму теплішою, а літо прохолоднішим", w: ["Вони значно сухіші та викликають посухи", "Вони ніколи не заходять на суходіл", "Вони завжди мають температуру нижче 0 °C"], exp: "Формуючись над океанами, морські ПМ насичуються вологою і пом'якшують клімат узбереж." },
+    { cat: "climate", tag: "§ 11–12 • Постійні вітри", q: "Які постійні вітри переносять повітряні маси від тропіків до екватора, а які панують у помірних широтах?", a: "Від тропіків до екватора — пасати; у помірних широтах — західні вітри", w: ["Біля екватора — західні вітри; у помірних широтах — пасати", "Усюди дмуть лише бризи", "У помірних широтах дмуть лише полярні східні вітри"], exp: "Пасати дмуть від 30° широт до екватора, а в помірних широтах переважає західне перенесення повітряних мас." },
+    { cat: "climate", tag: "§ 11–12 • Циклон", q: "Які ознаки характерні для циклону (за схемою в зошиті)?", a: "Вихор з низьким тиском у центрі, рух повітря від країв до центру проти годинникової стрілки, висхідний рух повітря, хмарна погода з опадами", w: ["Високий тиск у центрі, низхідний рух повітря, сонячна погода без опадів", "Рух повітря від центру до країв за годинниковою стрілкою", "Повний штиль і відсутність хмар"], exp: "У центрі циклону повітря піднімається вгору, охолоджується, утворює хмари і дає опади." },
+    { cat: "climate", tag: "§ 11–12 • Антициклон", q: "Які ознаки та погода характерні для антициклону?", a: "Високий тиск у центрі, рух від центру до країв за годинниковою стрілкою, низхідний рух повітря, стійка безхмарна погода без опадів (влітку тепло, взимку морозно)", w: ["Низький тиск у центрі, зливи, грози та сильний вітер", "Постійна хмарність і снігопади влітку", "Висхідний рух повітря у центрі"], exp: "За записами в зошиті: в антициклоні погода стійка, безвітряна, безхмарна, без опадів." },
+    { cat: "climate", tag: "§ 13 • Кліматичні пояси", q: "Що таке кліматичні пояси і скільки їх виділяють на Землі?", a: "Широтні смуги з однорідним кліматом: виділяють 7 основних та 6 проміжних поясів", w: ["Ділянки з однаковим рельєфом: 4 основні і 4 проміжні", "Частини океану: 10 основних поясів", "Пояси висотності в горах: 5 основних і 5 проміжних"], exp: "На Землі є 7 основних поясів і 6 проміжних (з префіксом «суб-»)." },
+    { cat: "climate", tag: "§ 13 • Проміжні кліматичні пояси", q: "Як змінюються повітряні маси в проміжних кліматичних поясах (субекваторіальному, субтропічному, субарктичному)?", a: "Сезонно двічі на рік: влітку приходять повітряні маси із сусіднього теплішого основного поясу, а взимку — з холоднішого", w: ["Увесь рік панує власна незмінна повітряна маса", "Щодня змінюються з арктичних на екваторіальні", "Повітряні маси там взагалі відсутні"], exp: "Наприклад, у субтропічний пояс влітку приходять сухі тропічні маси, а взимку — вологі помірні." },
+    { cat: "climate", tag: "§ 13 • Кліматичні області", q: "На які кліматичні області поділяється помірний кліматичний пояс (за конспектом)?", a: "Морську, помірно континентальну, континентальну та мусонну", w: ["Пустельну та напівпустельну", "Середземноморську та екваторіальну", "Лише на арктичну та антарктичну"], exp: "У помірному поясі виділяють 4 кліматичні області залежно від віддаленості від океанів: морську, помірно континентальну, континентальну і мусонну." },
+    { cat: "climate", tag: "§ 13 • Аналіз кліматограми", q: "За даними в зошиті: найвища температура липня +25 °C, найнижча січня -5 °C. Чому дорівнює річна амплітуда коливання температур?", a: "30 °C", w: ["20 °C", "25 °C", "15 °C"], exp: "Річна амплітуда — це різниця між найвищою і найнижчою температурою: 25 - (-5) = 30 °C." },
+
+    { cat: "nature", tag: "§ 14 • Природні комплекси", q: "Як називається поєднання взаємопов'язаних компонентів природи (рельєфу, клімату, вод, ґрунтів, рослин і тварин) на певній території?", a: "Природний комплекс (ландшафт)", w: ["Кліматична область", "Літосферна плита", "Атмосферний фронт"], exp: "Природний комплекс — це цілісна система взаємопов'язаних компонентів природи." },
+    { cat: "nature", tag: "§ 14 • Зональність та азональність", q: "Чим відрізняються зональні природні комплекси (географічні пояси, природні зони) від азональних (материки, океани, гори, рівнини)?", a: "Зональні залежать від розподілу сонячного тепла за широтою, а азональні — від внутрішніх процесів і тектонічної будови Землі", w: ["Зональні утворюються від землетрусів, а азональні — від вітру", "Азональні змінюються від екватора до полюсів", "Між ними немає жодної різниці"], exp: "У схемі в зошиті вказано: зональні — це географічні пояси та природні зони (клімат), азональні — материки, океани, природні країни (тектонічна будова)." },
+    { cat: "nature", tag: "§ 14 • Широтна зональність", q: "У якій послідовності змінюються природні зони від екватора до полюсів?", a: "Вологі екваторіальні ліси ➔ Савани ➔ Пустелі ➔ Степи ➔ Широколистяні ліси ➔ Тайга ➔ Тундра ➔ Арктичні пустелі", w: ["Тундра ➔ Тайга ➔ Степи ➔ Пустелі ➔ Савани ➔ Екваторіальні ліси", "Савани ➔ Тайга ➔ Вологі екваторіальні ліси ➔ Пустелі", "Пустелі ➔ Степи ➔ Савани ➔ Тундра"], exp: "Це закон широтної зональності: послідовна зміна природних зон від екватора до полюсів." },
+    { cat: "nature", tag: "§ 15 • Висотна поясність", q: "Що таке висотна (вертикальна) поясність?", a: "Закономірна зміна природних комплексів у горах від підніжжя до вершин через зниження температури з висотою", w: ["Зміна природних зон на рівнинах із заходу на схід", "Рух літосферних плит у горах", "Зміна солоності води в океані"], exp: "При підйомі в гори на кожні 1000 м температура падає на 6 °C, тому пояси змінюються подібно до руху від екватора до полюсів." },
+    { cat: "nature", tag: "§ 15 • Вертикальна поясність Карпат", q: "Яка правильна послідовність висотних поясів в Українських Карпатах знизу догори (від 0 до 2000 м)?", a: "Дубово-грабові ліси ➔ Буково-смерекові ➔ Ялинові (смерекові) ліси ➔ Субальпійські луки і криволісся ➔ Альпійські луки (полонини)", w: ["Полонини ➔ Ялинові ліси ➔ Букові ліси ➔ Дубові ліси", "Степи ➔ Пустелі ➔ Тайга ➔ Вічні сніги", "Тропічні ліси ➔ Савани ➔ Полонини"], exp: "За малюнком у зошиті: дубово-грабові (до 600 м) ➔ буково-смерекові (до 1200 м) ➔ ялинові (до 1500 м) ➔ субальпійські (до 1800 м) ➔ альпійські луки — полонини." },
+    { cat: "nature", tag: "§ 16 • Водні маси", q: "За якими двома головними ознаками розрізняють водні маси в океані?", a: "За температурою (°C) та солоністю (‰)", w: ["За глибиною та швидкістю суден", "За кольором піску та формою берега", "За напрямком вітру"], exp: "Водні маси — це великі об'єми води, що відрізняються температурою і солоністю." },
+    { cat: "nature", tag: "§ 16 • Типи водних мас", q: "Які водні маси є найтеплішими (+29 °C), а які — найсолонішими (37 ‰) за записами в зошиті?", a: "Найтепліші — екваторіальні (+29 °C, 35 ‰); найсолоніші — тропічні (+25 °C, 37 ‰)", w: ["Найтепліші — полярні (0 °C, 32 ‰); найсолоніші — помірні", "Найтепліші і найсолоніші — полярні", "Усі водні маси мають температуру +20 °C і солоність 32 ‰"], exp: "Екваторіальні маси найтепліші (+29 °C), але через рясні дощі їх солоність 35 ‰; а в тропіках дощів мало і сильне випаровування, тому солоність 37 ‰." },
+
+    { cat: "people", tag: "§ 17–18 • Розподіл населення", q: "Як розподіляється населення Землі за частинами світу (за конспектом у зошиті)?", a: "1. Азія (61%), 2. Африка (12%), 3. Європа (10%), 4. Пд. Америка (9%), 5. Пн. Америка (7%), 6. Австралія (1%)", w: ["1. Європа (61%), 2. Пн. Америка (20%), 3. Азія (5%)", "1. Африка (61%), 2. Австралія (20%), 3. Азія (10%)", "На всіх материках живе однакова кількість людей"], exp: "Понад три п'ятих усього людства (61%) проживає в Азії, а найменше заселена Австралія (1%)." },
+    { cat: "people", tag: "§ 17–18 • Густота населення", q: "За якою формулою обчислюють густоту населення і який середній показник для Землі?", a: "Г = Н : П (кількість населення поділити на площу в км²); середня густота ≈ 56–57 осіб/км²", w: ["Г = Н × П (помножити населення на площу); середня густота ≈ 500 осіб/км²", "Г = П : Н; середня густота ≈ 5 осіб/км²", "Різниця між народженими і померлими"], exp: "Густота показує, скільки людей припадає на 1 км² території." },
+    { cat: "people", tag: "§ 17–18 • Рекорди густоти", q: "Які країни-карлики мають найвищу у світі густоту населення (за прикладами в зошиті)?", a: "Монако (~18 700 осіб/км²), Сінгапур (~8 000 осіб/км²), Ватикан (~1 600 осіб/км²)", w: ["Канада, Австралія та Монголія", "Бразилія, Аргентина та Чилі", "Норвегія, Швеція та Фінляндія"], exp: "У невеликих за площею країнах-містах (Монако, Сінгапур, Ватикан) густота населення сягає тисяч осіб на 1 км²." },
+    { cat: "people", tag: "§ 17–18 • Природний приріст", q: "Що таке природний приріст населення?", a: "Різниця між кількістю народжених і померлих на 1000 жителів за рік (може бути додатним або від'ємним)", w: ["Кількість людей на 1 км² площі", "Кількість туристів, що відвідали країну", "Загальна площа сільськогосподарських земель"], exp: "Якщо народжуваність перевищує смертність, природний приріст додатний (+), якщо навпаки — від'ємний (-)." },
+    { cat: "people", tag: "§ 19–20 • Чинники розселення", q: "Які 6 головних природних чинників найбільше впливають на розселення людей (за списком у зошиті)?", a: "1. Рельєф (рівнини і гори), 2. Кліматичні умови, 3. Ґрунти, 4. Корисні копалини, 5. Рослинний і тваринний світ, 6. Наявність відпочинкових зон і води", w: ["Лише глибина океану та вік динозаврів", "Лише сила тяжіння і магнітне поле", "Напрямок руху антарктичних крижин"], exp: "Люди найгустіше заселяють теплі рівнини з родючими ґрунтами, прісною водою, помірним і субтропічним кліматом та поблизу морів." },
+    { cat: "people", tag: "§ 19–20 • Географічна оболонка", q: "Які 4 головні закономірності (властивості) має географічна оболонка Землі?", a: "1. Цілісність, 2. Ритмічність, 3. Широтна зональність, 4. Висотна поясність", w: ["1. Солоність, 2. Прозорість, 3. Твердість, 4. Вологість", "1. Циклонічність, 2. Складчастість, 3. Магматизм, 4. Густота", "Лише нерухомість та однорідність"], exp: "Ці 4 фундаментальні властивості географічної оболонки завершують конспект Розділу ІІ." }
+];
+
+let currentCat = "all", pool = [], idx = 0, score = 0, mistakes = [];
+let playerName = "", isRetryRun = false;
+let timer = null, startSec = 0, elapsedSeconds = 0;
+
+const topicNames = {
+    "all": "Усі теми",
+    "tectonics": "§ 8–10: Тектоніка та рельєф",
+    "climate": "§ 11–13: Повітряні маси і клімат",
+    "nature": "§ 14–16: Природні зони і гори",
+    "people": "§ 17–20: Населення та оболонка"
+};
+
+window.onload = () => {
+    updateSoundBtn();
+    const savedName = localStorage.getItem("chem_last_player");
+    if (savedName) document.getElementById("player-name").value = savedName;
+    renderLeaderboard();
+};
+
+function setTopic(cat, btn) {
+    currentCat = cat;
+    document.querySelectorAll(".topic-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("lb-title").innerText = `🏆 Таблиця лідерів (${topicNames[cat]})`;
+    renderLeaderboard();
+}
+
+function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
+
+function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+}
+
+function startQuiz(customList = null) {
+    const nameInput = document.getElementById("player-name").value.trim();
+    if (!nameInput) {
+        playRandomWrongSound();
+        alert("Будь ласка, введи своє ім'я перед початком!");
+        document.getElementById("player-name").focus();
+        return;
+    }
+    playerName = nameInput;
+    localStorage.setItem("chem_last_player", playerName);
+
+    if (customList) {
+        pool = shuffle(customList);
+        isRetryRun = true;
+    } else {
+        pool = shuffle(currentCat === "all" ? questions : questions.filter(q => q.cat === currentCat));
+        isRetryRun = false;
+    }
+
+    idx = 0; score = 0; mistakes = [];
+    document.getElementById("player-badge").innerText = `👤 ${playerName}`;
+    document.getElementById("setup-view").classList.add("hidden");
+    document.getElementById("res-view").classList.add("hidden");
+    document.getElementById("quiz-view").classList.remove("hidden");
+    
+    startSec = Date.now();
+    elapsedSeconds = 0;
+    document.getElementById("q-timer").innerText = "⏱ 00:00";
+    clearInterval(timer);
+    timer = setInterval(() => {
+        elapsedSeconds = Math.floor((Date.now() - startSec) / 1000);
+        document.getElementById("q-timer").innerText = `⏱ ${formatTime(elapsedSeconds)}`;
+    }, 500);
+    renderQ();
+}
+
+function renderQ() {
+    document.getElementById("next-btn").classList.add("hidden");
+    document.getElementById("exp-box").classList.add("hidden");
+    const item = pool[idx];
+    document.getElementById("q-progress").innerText = `${idx + 1} / ${pool.length}`;
+    document.getElementById("q-tag").innerText = item.tag;
+    document.getElementById("q-text").innerText = item.q;
+
+    const opts = shuffle([item.a, ...item.w]);
+    const list = document.getElementById("opt-list");
+    list.innerHTML = "";
+    opts.forEach(opt => {
+        const b = document.createElement("button");
+        b.className = "opt-btn";
+        b.innerText = opt;
+        b.onclick = () => checkAns(b, opt, item);
+        list.appendChild(b);
+    });
+}
+
+function checkAns(btn, sel, item) {
+    document.querySelectorAll(".opt-btn").forEach(b => {
+        b.disabled = true;
+        if (b.innerText === item.a) b.classList.add("correct");
+    });
+    if (sel === item.a) {
+        score++;
+        playRandomSuccessSound();
+    } else {
+        btn.classList.add("wrong");
+        playRandomWrongSound();
+        mistakes.push({ item, sel });
+    }
+    const exp = document.getElementById("exp-box");
+    exp.innerHTML = `💡 <b>Пояснення:</b> ${item.exp}`;
+    exp.classList.remove("hidden");
+    document.getElementById("next-btn").classList.remove("hidden");
+}
+
+function nextQ() {
+    idx++;
+    if (idx < pool.length) renderQ();
+    else finishQuiz();
+}
+
+async function finishQuiz() {
+    clearInterval(timer);
+    playFinishFanfare();
+    document.getElementById("quiz-view").classList.add("hidden");
+    document.getElementById("res-view").classList.remove("hidden");
+    document.getElementById("res-score").innerText = `${score} / ${pool.length}`;
+    document.getElementById("res-time").innerText = `⏱ Час: ${formatTime(elapsedSeconds)}`;
+
+    const recordMsg = document.getElementById("record-msg");
+    if (!isRetryRun) {
+        const status = await saveResult(playerName, score, pool.length, elapsedSeconds);
+        recordMsg.innerText = status;
+    } else {
+        recordMsg.innerText = "Роботу над помилками успішно завершено!";
+    }
+
+    const mBox = document.getElementById("mistakes-box");
+    const rBtn = document.getElementById("retry-btn");
+    if (mistakes.length === 0) {
+        mBox.classList.add("hidden");
+        rBtn.classList.add("hidden");
+    } else {
+        mBox.classList.remove("hidden");
+        rBtn.classList.remove("hidden");
+        mBox.innerHTML = mistakes.map(m =>
+            `<div style="margin-bottom:8px;">❌ <b>${m.item.q}</b><br>Було обрано: <s>${m.sel}</s><br>✅ Правильно: <b>${m.item.a}</b></div>`
+        ).join("<hr style='border:0;border-top:1px solid #fecdd3;'>");
+    }
+}
+
+function getBoardKey() {
+    return `geo_lb_${currentCat}`;
+}
+
+async function fetchScores() {
+    const key = getBoardKey();
+    if (CLOUD_DB_URL) {
+        try {
+            const res = await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`) + `?t=${Date.now()}`);
+            const data = await res.json();
+            return data ? Object.values(data) : [];
+        } catch (e) { console.error(e); }
+    }
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+}
+
+async function saveResult(name, newScore, total, newTime) {
+    const key = getBoardKey();
+    let list = await fetchScores();
+    const normName = name.trim().toLowerCase();
+    
+    let existing = list.find(p => p.name.trim().toLowerCase() === normName);
+    let msg = "";
+
+    if (existing) {
+        existing.attempts = (existing.attempts || 1) + 1;
+        const isBetter = (newScore > existing.score) || (newScore === existing.score && newTime < existing.time);
+        if (isBetter) {
+            existing.score = newScore;
+            existing.time = newTime;
+            existing.total = total;
+            existing.name = name.trim();
+            msg = `🔥 Новий особистий рекорд! (Спроба №${existing.attempts})`;
+        } else {
+            msg = `Спроба №${existing.attempts} зарахована! Твій рекорд: ${existing.score}/${existing.total} за ${formatTime(existing.time)}`;
+        }
+    } else {
+        list.push({ name: name.trim(), score: newScore, total, time: newTime, attempts: 1 });
+        msg = "🎉 Тебе додано до таблиці лідерів!";
+    }
+
+    localStorage.setItem(key, JSON.stringify(list));
+
+    if (CLOUD_DB_URL) {
+        try {
+            await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(list)
+            });
+        } catch (e) { console.error(e); }
+    }
+    return msg;
+}
+
+async function renderLeaderboard(manualRefresh = false) {
+    const container = document.getElementById("lb-content");
+    if (manualRefresh) {
+        container.innerHTML = `<div style="text-align:center;color:#64748b;padding:12px;">⏳ Оновлення даних...</div>`;
+    }
+    let list = await fetchScores();
+
+    if (list.length === 0) {
+        container.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:12px;">Ще ніхто не проходив цю тему. Будь першим!</div>`;
+        return;
+    }
+
+    list.sort((a, b) => (b.score - a.score) || (a.time - b.time));
+
+    const medals = ["🥇", "🥈", "🥉"];
+    let html = `<table class="lb-table">
+        <thead><tr><th>#</th><th>Учень</th><th>Бали</th><th>Час</th><th>Спроб</th></tr></thead><tbody>`;
+    
+    list.slice(0, 15).forEach((p, idx) => {
+        const rank = medals[idx] || (idx + 1);
+        html += `<tr>
+            <td>${rank}</td>
+            <td>${p.name}</td>
+            <td><b>${p.score}</b>/${p.total}</td>
+            <td>${formatTime(p.time)}</td>
+            <td><span class="badge-attempts">${p.attempts || 1}</span></td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+function retryMistakes() { startQuiz(mistakes.map(m => m.item)); }
+
+function goHome() {
+    document.getElementById("res-view").classList.add("hidden");
+    document.getElementById("setup-view").classList.remove("hidden");
+    renderLeaderboard();
+}
+
+let heartClicks = 0;
+let heartTimer = null;
+
+async function handleHeartClick() {
+    heartClicks++;
+    clearTimeout(heartTimer);
+    heartTimer = setTimeout(() => { heartClicks = 0; }, 1200);
+
+    if (heartClicks >= 5) {
+        heartClicks = 0;
+        const pin = prompt("🔒 Адмін-панель\nВведіть пароль доступу:");
+        if (!pin) return;
+
+        if (btoa(pin.trim()) === "MTEwMw==") {
+            const key = getBoardKey();
+            let list = await fetchScores();
+            const names = list.map(p => p.name).join(", ") || "таблиця порожня";
+
+            const target = prompt(
+                `🛠️ Управління таблицею:\nЗараз у списку: ${names}\n\n` +
+                `• Введіть ІМ'Я гравця, щоб видалити лише його\n` +
+                `• Введіть ALL (або ВСІ), щоб очистити всю таблицю:`
+            );
+            if (!target) return;
+
+            const cleanTarget = target.trim().toLowerCase();
+
+            if (cleanTarget === "all" || cleanTarget === "всі") {
+                localStorage.removeItem(key);
+                if (CLOUD_DB_URL) {
+                    try {
+                        await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), { method: "DELETE" });
+                    } catch (e) { console.error(e); }
+                }
+                renderLeaderboard();
+                alert("✅ Всю таблицю лідерів цієї теми очищено!");
+            } else {
+                const newList = list.filter(p => p.name.trim().toLowerCase() !== cleanTarget);
+                if (newList.length === list.length) {
+                    alert(`⚠️ Гравця з ім'ям "${target}" не знайдено у поточній таблиці.`);
+                    return;
+                }
+                localStorage.setItem(key, JSON.stringify(newList));
+                if (CLOUD_DB_URL) {
+                    try {
+                        await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(newList)
+                        });
+                    } catch (e) { console.error(e); }
+                }
+                renderLeaderboard();
+                alert(`✅ Гравця "${target}" видалено з таблиці!`);
+            }
+        } else {
+            playRandomWrongSound();
+            alert("⛔ Невірний пароль! Спробу зафіксовано 😉");
+        }
+    }
+}
+</script>
+</body>
+</html>
