@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Столиці Світу • Інтерактивний Турнір</title>
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #5b21b6;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --bg: #f5f3ff;
+            --card: #ffffff;
+            --text: #1e1b4b;
+            --muted: #64748b;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body {
+            margin: 0; padding: 16px;
+            background: linear-gradient(135deg, #ede9fe 0%, #e0f2fe 100%);
+            color: var(--text); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh;
+        }
+        .container {
+            background: var(--card); width: 100%; max-width: 680px; padding: 26px;
+            border-radius: 22px; box-shadow: 0 12px 30px rgba(124, 58, 237, 0.12); position: relative;
+            margin: 10px 0;
+        }
+        .subject-nav {
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding-right: 40px;
+        }
+        .subj-link {
+            text-decoration: none; padding: 6px 13px; border-radius: 20px; font-size: 0.84rem;
+            font-weight: 700; border: 1.5px solid #cbd5e1; color: var(--muted); background: #f8fafc; transition: 0.2s;
+        }
+        .subj-link:hover { border-color: var(--primary); color: var(--primary); }
+        .subj-link.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .sound-toggle {
+            position: absolute; top: 18px; right: 18px; width: 42px; height: 42px;
+            border-radius: 50%; border: 1.5px solid #cbd5e1; background: #f8fafc;
+            cursor: pointer; font-size: 1.25rem; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; padding: 0;
+        }
+        .sound-toggle:hover { background: #e2e8f0; transform: scale(1.06); }
+        .sound-toggle.muted { opacity: 0.6; background: #fee2e2; border-color: #fca5a5; }
+
+        h1 { margin: 0 0 6px; font-size: 1.55rem; text-align: center; color: var(--primary); }
+        .sub { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; }
+        
+        .controls {
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px;
+            background: #f8fafc; padding: 16px; border-radius: 14px; border: 1px solid #e2e8f0;
+        }
+        label { font-size: 0.92rem; font-weight: 600; color: #334155; display: block; margin-bottom: 5px; }
+        input[type="text"], select {
+            width: 100%; padding: 11px 14px; border-radius: 10px;
+            border: 1.5px solid #cbd5e1; font-size: 0.98rem; outline: none; transition: 0.2s; background: #fff;
+        }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15); }
+
+        .continent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .cont-btn {
+            padding: 10px; border-radius: 10px; border: 1.5px solid #cbd5e1; background: #fff;
+            font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; color: var(--text);
+        }
+        .cont-btn:hover { border-color: var(--primary); background: #f8fafc; }
+        .cont-btn.active {
+            background: #f3e8ff; border-color: var(--primary); color: var(--primary-dark);
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+        }
+
+        .main-btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: var(--primary); color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .main-btn:hover { background: var(--primary-dark); }
+
+        .stats {
+            display: flex; justify-content: space-between; align-items: center; background: #f8fafc;
+            padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; color: var(--muted); margin-bottom: 14px;
+        }
+        .timer-badge { color: var(--primary); font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+
+        .q-box {
+            background: #f5f3ff; border: 2px solid #ddd6fe; border-radius: 16px;
+            padding: 22px 16px; margin-bottom: 16px; text-align: center;
+        }
+        .q-topic-tag { font-size: 0.8rem; color: var(--primary); text-transform: uppercase; margin-bottom: 6px; font-weight: 800; }
+        .q-main { font-size: 1.9rem; font-weight: 800; color: var(--text); line-height: 1.25; }
+        
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .opt-btn {
+            padding: 14px 12px; border-radius: 12px; border: 2px solid #e2e8f0;
+            background: #fff; font-size: 1rem; font-weight: 600; color: var(--text); cursor: pointer; transition: 0.15s;
+        }
+        .opt-btn:hover:not(:disabled) { border-color: var(--primary); background: #f8fafc; }
+        .opt-btn.correct { background: #dcfce7; border-color: var(--success); color: #14532d; transform: scale(1.02); }
+        .opt-btn.wrong { background: #fee2e2; border-color: var(--danger); color: #7f1d1d; }
+        
+        .fact-box {
+            margin-top: 14px; padding: 14px 16px; border-radius: 12px; background: #fefce8;
+            border: 1.5px solid #fde047; font-size: 0.93rem; color: #713f12; line-height: 1.45;
+            animation: fadeIn 0.25s ease-in;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .leaderboard { margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        .lb-header { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .lb-header h3 { margin: 0; font-size: 1rem; color: #334155; }
+        .refresh-btn {
+            padding: 5px 10px; font-size: 0.82rem; background: #f1f5f9;
+            border: 1px solid #cbd5e1; border-radius: 8px; color: #334155; cursor: pointer; font-weight: 600;
+        }
+        .refresh-btn:hover { background: #e2e8f0; }
+
+        .lb-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        .lb-table th { text-align: left; color: var(--muted); padding: 6px 8px; border-bottom: 2px solid #e2e8f0; }
+        .lb-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+        .lb-table tr:nth-child(1) td { font-weight: 700; color: #b45309; background: #fffbeb; }
+        .badge-attempts {
+            background: #e2e8f0; color: #475569; padding: 2px 6px;
+            border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+        }
+
+        .mistakes {
+            max-height: 230px; overflow-y: auto; background: #fff1f2; padding: 12px;
+            border-radius: 12px; margin: 14px 0; font-size: 0.9rem; text-align: left;
+        }
+        .footer-signature {
+            margin-top: 22px; text-align: center; font-size: 0.85rem;
+            color: var(--muted); font-weight: 500; user-select: none;
+        }
+        .footer-signature span { color: #e11d48; cursor: pointer; padding: 4px; }
+        .hidden { display: none; }
+        @media (max-width: 520px) {
+            .continent-grid, .options { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="subject-nav">
+        <a href="index.html" class="subj-link">🧪 Хімія</a>
+        <a href="geo.html" class="subj-link">🌍 Географія</a>
+        <a href="capitals.html" class="subj-link active">🏛️ Столиці</a>
+    </div>
+    <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Увімкнути/вимкнути звук">🔊</button>
+    <h1>🏛️ Столиці Світу</h1>
+    <div class="sub">Вивчай столиці за континентами з цікавими асоціаціями та фактами!</div>
+
+    <!-- СТАРТОВИЙ ЕКРАН -->
+    <div id="setup-view">
+        <div class="controls">
+            <div>
+                <label for="player-name">Твоє ім'я або нікнейм:</label>
+                <input type="text" id="player-name" placeholder="Наприклад: Софія" maxlength="25">
+            </div>
+
+            <div>
+                <label>Обери частину світу або режим:</label>
+                <div class="continent-grid">
+                    <button type="button" class="cont-btn active" onclick="setContinent('europe', this)">🇪🇺 Європа (44)</button>
+                    <button type="button" class="cont-btn" onclick="setContinent('asia', this)">⛩️ Азія (42)</button>
+                    <button type="button" class="cont-btn" onclick="setContinent('americas', this)">🗽 Америка Пн. і Пд. (35)</button>
+                    <button type="button" class="cont-btn" onclick="setContinent('africa', this)">🦁 Африка (42)</button>
+                    <button type="button" class="cont-btn" onclick="setContinent('oceania', this)">🦘 Австралія і Океанія (14)</button>
+                    <button type="button" class="cont-btn" onclick="setContinent('blitz20', this)">⚡ Бліц: 20 випадкових зі світу</button>
+                    <button type="button" class="cont-btn" style="grid-column: span 2; font-size:0.95rem;" onclick="setContinent('all', this)">🌐 Увесь світ (Марафон • 177 країн)</button>
+                </div>
+            </div>
+
+            <div>
+                <label for="dir-select">Як питати:</label>
+                <select id="dir-select" onchange="renderLeaderboard()">
+                    <option value="c_to_cap">Країна ➔ Столиця (Франція ➔ Париж)</option>
+                    <option value="cap_to_c">Столиця ➔ Країна (Токіо ➔ Японія)</option>
+                    <option value="mix">🔥 Мікс (Країна ⇄ Столиця)</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="main-btn" onclick="startQuiz()">🚀 Почати турнір</button>
+
+        <div class="leaderboard">
+            <div class="lb-header">
+                <h3 id="lb-title">🏆 Таблиця лідерів (Європа)</h3>
+                <button class="refresh-btn" onclick="renderLeaderboard(true)">🔄 Оновити</button>
+            </div>
+            <div id="lb-content">Завантаження...</div>
+        </div>
+    </div>
+
+    <!-- ЕКРАН ГРИ -->
+    <div id="quiz-view" class="hidden">
+        <div class="stats">
+            <span id="player-badge">👤 Гравець</span>
+            <span id="q-progress">1 / 44</span>
+            <span class="timer-badge" id="q-timer">⏱ 00:00</span>
+        </div>
+        <div class="q-box">
+            <div class="q-topic-tag" id="q-tag">Вкажи столицю країни:</div>
+            <div class="q-main" id="q-text">🇺🇦 Україна</div>
+        </div>
+        <div class="options" id="opt-list"></div>
+        <div id="fact-box" class="fact-box hidden"></div>
+        <button id="next-btn" class="main-btn hidden" style="margin-top:14px;" onclick="nextQ()">Далі ➔</button>
+    </div>
+
+    <!-- ЕКРАН РЕЗУЛЬТАТІВ -->
+    <div id="res-view" class="hidden" style="text-align:center;">
+        <h2 style="margin:0;">Фініш! 🎉</h2>
+        <div style="font-size:2.6rem; font-weight:800; color:var(--primary); margin:6px 0;" id="res-score">44 / 44</div>
+        <div style="color:var(--muted); font-weight:600; margin-bottom:8px;" id="res-time">⏱ Час: 00:00</div>
+        <p id="record-msg" style="font-weight:600; color:var(--success); margin:6px 0;"></p>
+        
+        <div id="mistakes-box" class="mistakes hidden"></div>
+        
+        <button id="retry-btn" class="main-btn hidden" style="background:var(--warning); margin-bottom:10px;" onclick="retryMistakes()">🔧 Пройти лише помилки (поза рейтингом)</button>
+        <button class="main-btn" onclick="goHome()">🏠 На головну та до рейтингу</button>
+    </div>
+
+    <div class="footer-signature">
+        Створено з любов'ю, тато Мар'ян К. <span id="secret-heart" onclick="handleHeartClick()">❤️</span>
+    </div>
+</div>
+
+<script>
+const CLOUD_DB_URL = "https://chemistry-9d2fa-default-rtdb.firebaseio.com/scores.json";
+
+let soundEnabled = localStorage.getItem("cap_sound") !== "off";
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+}
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem("cap_sound", soundEnabled ? "on" : "off");
+    updateSoundBtn();
+    if (soundEnabled) playTone(660, "sine", 0.1, 0);
+}
+
+function updateSoundBtn() {
+    const btn = document.getElementById("sound-btn");
+    btn.innerText = soundEnabled ? "🔊" : "🔇";
+    btn.classList.toggle("muted", !soundEnabled);
+}
+
+function playTone(freq, type, duration, delay = 0, vol = 0.16, slideTo = null) {
+    if (!soundEnabled) return;
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, ctx.currentTime + delay + duration);
+        gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + duration);
+    } catch (e) {}
+}
+
+function playRandomSuccessSound() {
+    if (!soundEnabled) return;
+    const v = Math.floor(Math.random() * 5);
+    if (v === 0) { playTone(987.77, "square", 0.08, 0, 0.12); playTone(1318.51, "square", 0.28, 0.08, 0.12); }
+    else if (v === 1) { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, "triangle", 0.14, i * 0.06, 0.2)); }
+    else if (v === 2) { playTone(320, "sine", 0.28, 0, 0.2, 1150); }
+    else if (v === 3) { playTone(880, "sine", 0.12, 0, 0.2); playTone(1174.66, "sine", 0.25, 0.1, 0.2); }
+    else { playTone(587.33, "triangle", 0.1, 0, 0.18); playTone(587.33, "triangle", 0.1, 0.11, 0.18); playTone(880, "triangle", 0.3, 0.22, 0.22); }
+}
+
+function playRandomWrongSound() {
+    if (!soundEnabled) return;
+    const v = Math.floor(Math.random() * 4);
+    if (v === 0) { [300, 280, 260, 230].forEach((f, i) => playTone(f, "sawtooth", 0.16, i * 0.14, 0.12)); }
+    else if (v === 1) { playTone(550, "triangle", 0.35, 0, 0.2, 120); }
+    else if (v === 2) { playTone(160, "sawtooth", 0.15, 0, 0.14); playTone(130, "sawtooth", 0.25, 0.15, 0.14); }
+    else { playTone(220, "sine", 0.12, 0, 0.2, 420); playTone(420, "sine", 0.22, 0.12, 0.2, 160); }
+}
+
+function playFinishFanfare() {
+    if (!soundEnabled) return;
+    const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+    const delays = [0, 0.1, 0.2, 0.3, 0.45, 0.58];
+    const durs = [0.1, 0.1, 0.1, 0.14, 0.12, 0.4];
+    notes.forEach((f, i) => playTone(f, "triangle", durs[i], delays[i], 0.22));
+}
+
+// ============================================================================
+// БАЗА СТОЛИЦЬ СВІТУ З АСОЦІАЦІЯМИ, ПОХОДЖЕННЯМ НАЗВ, НАСЕЛЕННЯМ ТА ПАСТКАМИ
+// ============================================================================
+const capitalsDB = [
+    // --- ЄВРОПА (44) ---
+    { cont: "europe", flag: "🇺🇦", c: "Україна", cap: "Київ", trap: "Львів", hook: "Названий на честь князя Кия. Одне з найстаріших міст Східної Європи (~3 млн жителів), площа 839 км² — це майже в 8 разів більше за Париж!" },
+    { cont: "europe", flag: "🇵🇱", c: "Польща", cap: "Варшава", trap: "Краків", hook: "За легендою, назву дали рибалка Варш і русалка Сава (символ міста — Сиренка з мечем). Раніше столицею був Краків." },
+    { cont: "europe", flag: "🇩🇪", c: "Німеччина", cap: "Берлін", trap: "Мюнхен", hook: "Назва походить від давньослов'янського кореня «берл» (болото), але на гербі намальований ведмідь (бо німецькою Bär — ведмідь). Місто в 9 разів більше за Париж за площею!" },
+    { cont: "europe", flag: "🇫🇷", c: "Франція", cap: "Париж", trap: "Марсель", hook: "Названий на честь кельтського племені паризіїв. Саме місто дуже компактне (лише 105 км², як місто Чернівці), але з передмістями тут живе 11 млн людей." },
+    { cont: "europe", flag: "🇬🇧", c: "Велика Британія", cap: "Лондон", trap: "Манчестер", hook: "Заснований римлянами як Лондініум майже 2000 років тому. Перше місто світу, де з'явилося метро (1863 р.) і де мешкає близько 9 млн жителів." },
+    { cont: "europe", flag: "🇮🇹", c: "Італія", cap: "Рим", trap: "Мілан", hook: "«Вічне місто» на 7 пагорбах, назване на честь легендарного Ромула. Єдине місто у світі, всередині якого розташована ціла незалежна держава — Ватикан!" },
+    { cont: "europe", flag: "🇪🇸", c: "Іспанія", cap: "Мадрид", trap: "Барселона", hook: "Від арабського «Маджріт» (джерело води). Найвища серед великих столиць Європи (лежить на плато на висоті 667 м). Символ міста — ведмідь, що їсть плоди суничного дерева." },
+    { cont: "europe", flag: "🇵🇹", c: "Португалія", cap: "Лісабон", trap: "Порту", hook: "Найзахідніша столиця материкової Європи на березі Атлантики. Старіша за Рим — заснована фінікійцями як «Аліс Уббо» (Безпечна гавань)." },
+    { cont: "europe", flag: "🇨🇭", c: "Швейцарія", cap: "Берн", trap: "Цюрих", hook: "Пастка! Більшість думає, що столиця — Цюрих або Женева, але це Берн! Назва походить від слова Bär (ведмідь), якого герцог вполював у місцевому лісі." },
+    { cont: "europe", flag: "🇦🇹", c: "Австрія", cap: "Відень", trap: "Зальцбург", hook: "Світова столиця вальсу, опери та штруделя на річці Дунай. Назва походить від кельтської річки Ведунія («лісовий струмок»)." },
+    { cont: "europe", flag: "🇨🇿", c: "Чехія", cap: "Прага", trap: "Брно", hook: "Назва від чеського слова «праг» (річковий поріг на Влтаві). Місто «ста шпилів» із найбільшим у світі стародавнім замковим комплексом — Празьким Градом." },
+    { cont: "europe", flag: "🇸🇰", c: "Словаччина", cap: "Братислава", trap: "Кошиці", hook: "Єдина столиця у світі, яка безпосередньо межує одразу з двома іншими державами — Австрією та Угорщиною! До Відня звідси лише 55 км." },
+    { cont: "europe", flag: "🇭🇺", c: "Угорщина", cap: "Будапешт", trap: "Дебрецен", hook: "Утворився у 1873 році об'єднанням трьох міст на берегах Дунаю: горбистої Буди, Обуди і рівнинного Пешта («Буда + Пешт»)." },
+    { cont: "europe", flag: "🇷🇴", c: "Румунія", cap: "Бухарест", trap: "Клуж-Напока", hook: "За легендою, місто заснував пастух Букур, чиє ім'я румунською означає «радість» (тому Бухарест перекладається як «Місто радості»). Тут стоїть найважча будівля світу — Палац Парламенту." },
+    { cont: "europe", flag: "🇲🇩", c: "Молдова", cap: "Кишинів", trap: "Тирасполь", hook: "Назва від давньомолдавського «кішла ноуе» — «новий хутір / джерело». Одне з найзеленіших міст Європи, побудоване з білого вапняку." },
+    { cont: "europe", flag: "🇧🇬", c: "Болгарія", cap: "Софія", trap: "Варна", hook: "Названа на честь ранньохристиянського собору Святої Софії («Премудрості»), хоча в давнину місто звалося Сердика." },
+    { cont: "europe", flag: "🇬🇷", c: "Греція", cap: "Афіни", trap: "Салоніки", hook: "Названі на честь богині мудрості Афіни, яка подарувала місту оливкове дерево. Колиска демократії, Олімпійських ігор і театру." },
+    { cont: "europe", flag: "🇳🇱", c: "Нідерланди", cap: "Амстердам", trap: "Гаага", hook: "Виник як дамба (dam) на річці Амстел — звідси «Амстел-дам». Місто стоїть на мільйонах дерев'яних паль, має більше каналів, ніж Венеція, і більше велосипедів, ніж жителів!" },
+    { cont: "europe", flag: "🇧🇪", c: "Бельгія", cap: "Брюссель", trap: "Антверпен", hook: "Від давньонідерландського «Брукселла» — «поселення на болоті». Столиця Європейського Союзу, штаб-квартира НАТО і батьківщина бельгійських вафель та коміксів." },
+    { cont: "europe", flag: "🇱🇺", c: "Люксембург", cap: "Люксембург", trap: "Брюссель", hook: "Легко запам'ятати: назва столиці збігається з назвою країни! Перекладається з верхньонімецької як «Маленький замок» (Lucilinburhuc)." },
+    { cont: "europe", flag: "🇩🇰", c: "Данія", cap: "Копенгаген", trap: "Орхус", hook: "Датською «Кьобенхавн» означає «Гавань торговців». Тут на камені сидить знаменита статуя Русалоньки з казки Андерсена." },
+    { cont: "europe", flag: "🇸🇪", c: "Швеція", cap: "Стокгольм", trap: "Гетеборг", hook: "Розташований на 14 островах, з'єднаних 57 мостами. Назва «Сток-гольм» буквально означає «Острів колод / паль». Тут вручають Нобелівську премію." },
+    { cont: "europe", flag: "🇳🇴", c: "Норвегія", cap: "Осло", trap: "Берген", hook: "З давньоскандинавської означає «Лука богів» (або гирло річки Ло). Оточене фіордами й густими лісами, де вручають Нобелівську премію миру." },
+    { cont: "europe", flag: "🇫🇮", c: "Фінляндія", cap: "Гельсінкі", trap: "Тампере", hook: "Північна столиця на березі Фінської затоки, де на 650 тис. жителів припадає сотні тисяч саун (навіть у будівлі парламенту є сауна!)." },
+    { cont: "europe", flag: "🇮🇸", c: "Ісландія", cap: "Рейк'явік", trap: "Акюрейрі", hook: "Найпівнічніша столиця світу! Назва перекладається як «Димна затока» — перші вікінги побачили пару від гарячих гейзерів. Усі будинки тут опалюються підземним теплом вулканів." },
+    { cont: "europe", flag: "🇮🇪", c: "Ірландія", cap: "Дублін", trap: "Белфаст", hook: "Ірландською «Дув Лінн» означає «Чорна заводь / темне озеро» (через темну торф'яну воду річки Ліффі)." },
+    { cont: "europe", flag: "🇪🇪", c: "Естонія", cap: "Таллінн", trap: "Тарту", hook: "Походить від естонського «Таані-лінна» — «Данське місто / замок». Зверніть увагу на правопис: дві літери «л» і дві «н»!" },
+    { cont: "europe", flag: "🇱🇻", c: "Латвія", cap: "Рига", trap: "Юрмала", hook: "Найбільше місто трьох країн Балтії у гирлі річки Даугави. Славиться неймовірною архітектурою з півниками на шпилях соборів." },
+    { cont: "europe", flag: "🇱🇹", c: "Литва", cap: "Вільнюс", trap: "Каунас", hook: "Названий на честь річки Вільня («хвиля»). За легендою, князю Гедиміну наснився залізний вовк, що вив на пагорбі — там і збудували столицю." },
+    { cont: "europe", flag: "🇭🇷", c: "Хорватія", cap: "Загреб", trap: "Спліт", hook: "За легендою, правитель у спеку сказав дівчині Манді: «Загреби води з джерела!» — так джерело назвали Мандушеваць, а місто — Загреб." },
+    { cont: "europe", flag: "🇸🇮", c: "Словенія", cap: "Любляна", trap: "Марибор", hook: "Звучить як «любити» (словенською «люблена» — улюблена). Символом міста є зелений Люблянський дракон на мосту." },
+    { cont: "europe", flag: "🇷🇸", c: "Сербія", cap: "Белград", trap: "Новий Сад", hook: "Назва буквально означає «Біле місто» (через білі вапнякові стіни фортеці на місці злиття річок Сави і Дунаю)." },
+    { cont: "europe", flag: "🇧🇦", c: "Боснія і Герцеговина", cap: "Сараєво", trap: "Мостар", hook: "Від турецького слова «сарай» (палац) та «ова» (поле) — «Палац у полі». Місто лежить у мальовничій гірській долині Динарських Альп." },
+    { cont: "europe", flag: "🇲🇪", c: "Чорногорія", cap: "Подгориця", trap: "Будва", hook: "Назва говорить сама за себе: «Під горою» (біля пагорба Гориця, що дав назву всій Чорногорії)." },
+    { cont: "europe", flag: "🇲🇰", c: "Північна Македонія", cap: "Скоп'є", trap: "Охрид", hook: "Від античного міста Скупі («вартова вежа / оглядовий пункт»). Батьківщина матері Терези." },
+    { cont: "europe", flag: "🇦🇱", c: "Албанія", cap: "Тирана", trap: "Дуррес", hook: "Одне з найсонячніших міст Європи, де сірі будинки спеціально розмалювали яскравими геометричними візерунками всіх кольорів веселки." },
+    { cont: "europe", flag: "🇲🇹", c: "Мальта", cap: "Валлетта", trap: "Мдіна", hook: "Місто-фортеця площею лише 0,8 км² (можна обійти пішки за 20 хвилин!), назване на честь лицаря Жана де ла Валлетта." },
+    { cont: "europe", flag: "🇨🇾", c: "Кіпр", cap: "Нікосія", trap: "Лімасол", hook: "Грецька назва — Лефкосія («Місто білих тополь»). Столиця сонячного острова у Середземному морі." },
+    { cont: "europe", flag: "🇲🇨", c: "Монако", cap: "Монако", trap: "Монте-Карло", hook: "Держава-місто площею всього 2 км² (менше за Стрийський парк з околицями!), але з найвищою густотою населення у світі — майже 19 000 осіб/км²!" },
+    { cont: "europe", flag: "🇻🇦", c: "Ватикан", cap: "Ватикан", trap: "Рим", hook: "Найменша держава світу (площа 0,44 км², населення ~800 осіб), розташована прямо всередині Рима на Ватиканському пагорбі." },
+    { cont: "europe", flag: "🇦🇩", c: "Андорра", cap: "Андорра-ла-Велья", trap: "Барселона", hook: "Перекладається з каталанської як «Стара Андорра». Найвища столиця всієї Європи — лежить у горах Піренеях на висоті 1023 метри!" },
+    { cont: "europe", flag: "🇸🇲", c: "Сан-Марино", cap: "Сан-Марино", trap: "Ріміні", hook: "Найстаріша республіка світу (заснована у 301 році каменярем святим Марином на горі Монте-Титано)." },
+    { cont: "europe", flag: "🇱🇮", c: "Ліхтенштейн", cap: "Вадуц", trap: "Берн", hook: "Крихітна альпійська столиця (лише 5,5 тис. жителів), над якою на скелі височіє справжній княжий замок. Назва від романського «акведук»." },
+    { cont: "europe", flag: "🇧🇾", c: "Білорусь", cap: "Мінськ", trap: "Брест", hook: "Назва походить від невеликої річки Менка (притоки Птичі), на якій у XI столітті виникло укріплене поселення." },
+
+    // --- АЗІЯ (42) ---
+    { cont: "asia", flag: "🇯🇵", c: "Японія", cap: "Токіо", trap: "Кіото", hook: "Раніше називався Едо, а в 1868 р. перейменований на Токіо — «Східна столиця» (зверніть увагу на анаграму зі старою столицею: Кіо-то ⇄ То-кіо!). Найбільша агломерація світу (~37 млн жителів)." },
+    { cont: "asia", flag: "🇨🇳", c: "Китай", cap: "Пекін", trap: "Шанхай", hook: "Китайською «Бейцзін» буквально означає «Північна столиця» (тоді як Нанкін — «Південна столиця»). Населення — понад 21 млн осіб!" },
+    { cont: "asia", flag: "🇰🇷", c: "Південна Корея", cap: "Сеул", trap: "Пусан", hook: "Корейською слово «Соуль» просто і буквально означає «Столиця»! У мегаполісі та передмістях живе половина всього населення країни (~25 млн)." },
+    { cont: "asia", flag: "🇮🇳", c: "Індія", cap: "Нью-Делі", trap: "Мумбаї", hook: "Пастка: найбільше місто — Мумбаї (Бомбей), але урядова столиця — Нью-Делі («Новий Делі»), збудований за проєктом британських архітекторів у XX ст." },
+    { cont: "asia", flag: "🇹🇷", c: "Туреччина", cap: "Анкара", trap: "Стамбул", hook: "Головна пастка географії! Стамбул — найбільше місто, але з 1923 року столицею є Анкара в центрі країни. Назва від грецького «Анкіра» — «Якір»." },
+    { cont: "asia", flag: "🇬🇪", c: "Грузія", cap: "Тбілісі", trap: "Батумі", hook: "Від грузинського слова «тбілі» — «теплий» (місто засноване навколо природних теплих сірчаних джерел на річці Курі)." },
+    { cont: "asia", flag: "🇦🇲", c: "Вірменія", cap: "Єреван", trap: "Гюмрі", hook: "Одне з найдавніших міст світу — засноване у 782 р. до н. е. як фортеця Еребуні (на 29 років старше за Рим!). Збудоване з рожевого вулканічного туфу." },
+    { cont: "asia", flag: "🇦🇿", c: "Азербайджан", cap: "Баку", trap: "Гянджа", hook: "Від перського «Бад-кубе» — «Обдуване вітрами місто». Найнижча столиця світу — лежить на березі Каспійського моря на 28 метрів нижче рівня океану!" },
+    { cont: "asia", flag: "🇰🇿", c: "Казахстан", cap: "Астана", trap: "Алмати", hook: "Казахською слово «Астана» буквально перекладається як «Столиця»! До 1997 року столицею була Алмати («Батько яблук»)." },
+    { cont: "asia", flag: "🇺🇿", c: "Узбекистан", cap: "Ташкент", trap: "Самарканд", hook: "Тюркською «Таш» — камінь, «кент» — місто, тобто «Кам'яне місто». Найбільший мегаполіс Центральної Азії (~3 млн жителів)." },
+    { cont: "asia", flag: "🇹🇲", c: "Туркменістан", cap: "Ашгабат", trap: "Мари", hook: "Перською «Ешг» (любов) + «абад» (місто) = «Місто любові». Занесене до Книги рекордів Гіннеса як місто з найбільшою кількістю будівель із білого мармуру." },
+    { cont: "asia", flag: "🇰🇬", c: "Киргизстан", cap: "Бішкек", trap: "Ош", hook: "Бішкек — це назва дерев'яної колотівки, якою збивають кумис (національний напій), а також ім'я легендарного богатиря біля підніжжя Тянь-Шаню." },
+    { cont: "asia", flag: "🇹🇯", c: "Таджикистан", cap: "Душанбе", trap: "Худжанд", hook: "Перською та таджицькою «Душанбе» означає «Понеділок» — бо на цьому місці щопонеділка збирався великий східний базар!" },
+    { cont: "asia", flag: "🇲🇳", c: "Монголія", cap: "Улан-Батор", trap: "Каракорум", hook: "Перекладається з монгольської як «Червоний богатир». Найхолодніша столиця світу (середньорічна температура нижче нуля, взимку до -40 °C)." },
+    { cont: "asia", flag: "🇹🇭", c: "Таїланд", cap: "Бангкок", trap: "Пхукет", hook: "Для іноземців — Бангкок («Місто диких слив»), а офіційна тайська назва «Крунг Тхеп...» складається зі 168 літер і є найдовшою назвою міста у світі!" },
+    { cont: "asia", flag: "🇻🇳", c: "В'єтнам", cap: "Ханой", trap: "Хошимін", hook: "В'єтнамською «Ха-ной» означає «Місто між річками» (розташоване в дельті Червоної річки). Найбільше місто країни — Хошимін, але столиця — Ханой." },
+    { cont: "asia", flag: "🇮🇩", c: "Індонезія", cap: "Джакарта", trap: "Балі", hook: "З санскриту «Джаякарта» означає «Переможне місто». Гігантський мегаполіс на острові Ява, де з передмістями живе понад 30 млн людей!" },
+    { cont: "asia", flag: "🇲🇾", c: "Малайзія", cap: "Куала-Лумпур", trap: "Сінгапур", hook: "Малайською буквально означає «Брудне (мулисте) гирло» — місто виникло на місці злиття двох мулистих річок. Славиться вежами-близнюками Петронас." },
+    { cont: "asia", flag: "🇸🇬", c: "Сінгапур", cap: "Сінгапур", trap: "Куала-Лумпур", hook: "Місто-держава! З санскриту «Сімха-пура» перекладається як «Місто Лева». Один із найрозвиненіших технологічних центрів світу з густотою ~8000 осіб/км²." },
+    { cont: "asia", flag: "🇵🇭", c: "Філіппіни", cap: "Маніла", trap: "Себу", hook: "Походить від фрази «Май-нілад» — «Місце, де росте нілад» (водяна квітуча рослина мангрових берегів). Найбільш густонаселене місто світу." },
+    { cont: "asia", flag: "🇦🇪", c: "ОАЕ (Об'єднані Арабські Емірати)", cap: "Абу-Дабі", trap: "Дубай", hook: "Пастка! Усі знають хмарочоси Дубая, але офіційна столиця і найбільший за площею емірат — це Абу-Дабі (арабською «Батько газелі»)." },
+    { cont: "asia", flag: "🇸🇦", c: "Саудівська Аравія", cap: "Ер-Ріяд", trap: "Мекка", hook: "Арабською «Ер-Ріяд» означає «Сади» — величезний оазис посеред Аравійської пустелі, де зараз мешкає понад 7 млн людей." },
+    { cont: "asia", flag: "🇶🇦", c: "Катар", cap: "Доха", trap: "Дубай", hook: "Від арабського слова «Ад-Доха» — «Затока» (або велике дерево на березі). Тут живет майже 80% усього населення Катару." },
+    { cont: "asia", flag: "🇰🇼", c: "Кувейт", cap: "Ель-Кувейт", trap: "Манама", hook: "Легко запам'ятати: країна Кувейт ➔ столиця Ель-Кувейт. Арабською означає «Фортеця біля води»." },
+    { cont: "asia", flag: "🇴🇲", c: "Оман", cap: "Маскат", trap: "Сана", hook: "Портове місто між скелястими горами та Оманською затокою; назва означає «Місце падіння (якоря)»." },
+    { cont: "asia", flag: "🇧🇭", c: "Бахрейн", cap: "Манама", trap: "Доха", hook: "Острівна арабська столиця у Перській затоці; назва перекладається як «Місце відпочинку / снів»." },
+    { cont: "asia", flag: "🇮🇱", c: "Ізраїль", cap: "Єрусалим", trap: "Тель-Авів", hook: "Одне з найдавніших міст людства (понад 5000 років), священне для трьох релігій. З івриту «Ір Шалом» — «Місто миру»." },
+    { cont: "asia", flag: "🇯🇴", c: "Йорданія", cap: "Амман", trap: "Петра", hook: "У біблійні часи називався Раббат-Аммон, а за греків — Філадельфія. Побудований на 7 пагорбах, як і Рим." },
+    { cont: "asia", flag: "🇱🇧", c: "Ліван", cap: "Бейрут", trap: "Дамаск", hook: "Від фінікійського слова «беерот» — «колодязі / джерела води». Один із найстаріших морських портів Середземного моря." },
+    { cont: "asia", flag: "🇸🇾", c: "Сирія", cap: "Дамаск", trap: "Алеппо", hook: "Найстаріша з постійно заселених столиць світу — люди безперервно живуть тут уже понад 5 000 років!" },
+    { cont: "asia", flag: "🇮🇶", c: "Ірак", cap: "Багдад", trap: "Тегеран", hook: "З давньоперської перекладається як «Божий дар» (Баг — Бог, дад — даний). Місто казок «Тисячі і однієї ночі» на річці Тигр." },
+    { cont: "asia", flag: "🇮🇷", c: "Іран", cap: "Тегеран", trap: "Багдад", hook: "Лежить біля підніжжя вулкана Демавенд (5610 м). Назва означає «Теплий схил / підніжжя гори». Не плутайте: Ірак — Багдад, Іран — Тегеран!" },
+    { cont: "asia", flag: "🇵🇰", c: "Пакистан", cap: "Ісламабад", trap: "Карачі", hook: "Найбільше місто Пакистану — Карачі, але в 1960-х спеціально збудували нову столицю Ісламабад («Місто ісламу»)." },
+    { cont: "asia", flag: "🇦🇫", c: "Афганістан", cap: "Кабул", trap: "Кандагар", hook: "Високогірна столиця (на висоті 1800 м у долині річки Кабул), оточена хребтами Гіндукушу." },
+    { cont: "asia", flag: "🇧🇩", c: "Бангладеш", cap: "Дакка", trap: "Колката", hook: "Один із найбільш густонаселених мегаполісів світу в дельті Гангу і Брахмапутри, який називають «Світовою столицею велорикш»." },
+    { cont: "asia", flag: "🇳🇵", c: "Непал", cap: "Катманду", trap: "Тхімпху", hook: "Назва від стародавнього храму Кастхамандап («Дерев'яний павільйон»), збудованого за легендою зі стовбура одного-єдиного гігантського дерева. Ворота до Евересту!" },
+    { cont: "asia", flag: "🇧🇹", c: "Бутан", cap: "Тхімпху", trap: "Катманду", hook: "Столиця гімалайського «Королівства Дракона», яка є єдиною столицею у світі, де немає жодного світлофора — рух регулюють поліцейські в білих рукавичках!" },
+    { cont: "asia", flag: "🇱🇰", c: "Шрі-Ланка", cap: "Шрі-Джаяварденепура-Котте", trap: "Коломбо", hook: "Найдовша офіційна назва столиці! Перекладається як «Благословенне місто-фортеця зростаючої перемоги» (фактична ділова столиця поруч — Коломбо)." },
+    { cont: "asia", flag: "🇲🇻", c: "Мальдіви", cap: "Мале", trap: "Малі", hook: "Острівна столиця площею лише 8 км² посеред Індійського океану, де суцільно забудований кожен метр коралового атола." },
+    { cont: "asia", flag: "🇰🇭", c: "Камбоджа", cap: "Пномпень", trap: "В'єнтьян", hook: "Кхмерською «Пном» — пагорб, а «Пень» — ім'я багатої вдови, яка у XIV ст. знайшла в річці Меконг статуї Будди і звела храм на пагорбі." },
+    { cont: "asia", flag: "🇱🇦", c: "Лаос", cap: "В'єнтьян", trap: "Пномпень", hook: "З лаоської та санскриту перекладається як «Місто сандалового дерева» на березі річки Меконг." },
+    { cont: "asia", flag: "🇲🇲", c: "М'янма", cap: "Нейп'їдо", trap: "Янгон", hook: "У 2005 році столицю перенесли з Янгона у спеціально збудоване серед джунглів місто Нейп'їдо («Королівська резиденція») з 20-смуговими порожніми шосе." },
+
+    // --- АМЕРИКА ПІВНІЧНА І ПІВДЕННА (35) ---
+    { cont: "americas", flag: "🇺🇸", c: "США", cap: "Вашингтон", trap: "Нью-Йорк", hook: "Пастка! Не Нью-Йорк і не Лос-Анджелес, а Вашингтон (округ Колумбія), названий на честь першого президента Джорджа Вашингтона." },
+    { cont: "americas", flag: "🇨🇦", c: "Канада", cap: "Оттава", trap: "Торонто", hook: "Пастка! Королева Вікторія обрала Оттаву, бо вона лежить рівно посередині між англомовним Торонто і франкомовним Монреалем. Назва мовою індіанців алгонкінів — «торгувати»." },
+    { cont: "americas", flag: "🇲🇽", c: "Мексика", cap: "Мехіко", trap: "Канкун", hook: "Побудований на місці стародавньої столиці ацтеків — Теночтітлана (посеред висохлого гірського озера на висоті 2240 м). Мегаполіс на 22 млн жителів!" },
+    { cont: "americas", flag: "🇧🇷", c: "Бразилія", cap: "Бразиліа", trap: "Ріо-де-Жанейро", hook: "Пастка! У 1960 р. столицю перенесли з Ріо-де-Жанейро в центр країни у місто Бразиліа, яке з висоти пташиного польоту побудоване у формі гігантського літака!" },
+    { cont: "americas", flag: "🇦🇷", c: "Аргентина", cap: "Буенос-Айрес", trap: "Сантьяго", hook: "З іспанської перекладається як «Добрі (попутні) вітри» або «Чисте повітря». Батьківщина танго на березі затоки Ла-Плата." },
+    { cont: "americas", flag: "🇨🇱", c: "Чилі", cap: "Сантьяго", trap: "Буенос-Айрес", hook: "Названий іспанцями на честь святого Якова (Сан-Тьяго). Місто лежить у долині, а просто за ним здіймаються засніжені вершини Анд." },
+    { cont: "americas", flag: "🇵🇪", c: "Перу", cap: "Ліма", trap: "Куско", hook: "Походить від назви річки Рімак (мовою інків кечуа — «Той, що говорить»). Заснована конкістадором Франсіско Пісарро на тихоокеанському узбережжі." },
+    { cont: "americas", flag: "🇨🇴", c: "Колумбія", cap: "Богота", trap: "Медельїн", hook: "Від індіанського слова «Баката» («засіяне поле»). Третя за висотою столиця світу — лежить в Андах на висоті 2640 метрів над рівнем моря!" },
+    { cont: "americas", flag: "🇻🇪", c: "Венесуела", cap: "Каракас", trap: "Богота", hook: "Названий на честь місцевого індіанського племені каракас; відділений від Карибського моря високим гірським хребтом." },
+    { cont: "americas", flag: "🇪🇨", c: "Еквадор", cap: "Кіто", trap: "Ліма", hook: "Лежить майже на самій лінії екватора (за 25 км від 0° широти!), але там зовсім не спекотно (+15 °C), бо місто в Андах на висоті 2850 м!" },
+    { cont: "americas", flag: "🇧🇴", c: "Болівія", cap: "Сукре (та Ла-Пас)", trap: "Кіто", hook: "За конституцією столиця — Сукре, а уряд сидить у Ла-Пасі («Місто миру») — найвищій фактичній столиці світу (3640 м над рівнем моря, де замість метро їздять канатні дороги!)." },
+    { cont: "americas", flag: "🇵🇾", c: "Парагвай", cap: "Асунсьйон", trap: "Монтевідео", hook: "Іспанською означає «Вознесіння» (бо місто заснували 15 серпня у день цього свята на річці Парагвай)." },
+    { cont: "americas", flag: "🇺🇾", c: "Уругвай", cap: "Монтевідео", trap: "Асунсьйон", hook: "За легендою, португальський матрос на щоглі крикнув «Monte vide eu!» — «Я бачу гору!». Найпівденніша столиця всієї Америки." },
+    { cont: "americas", flag: "🇨🇺", c: "Куба", cap: "Гавана", trap: "Сан-Хуан", hook: "Названа на честь індіанського вождя таїно — Хагуани. Славиться ретро-автомобілями 1950-х років та набережною Малекон." },
+    { cont: "americas", flag: "🇯🇲", c: "Ямайка", cap: "Кінгстон", trap: "Нассау", hook: "З англійської «King's Town» — «Королівське місто». Світова столиця музики регі та батьківщина Боба Марлі і спринтера Усейна Болта." },
+    { cont: "americas", flag: "🇨🇷", c: "Коста-Рика", cap: "Сан-Хосе", trap: "Панама", hook: "Столиця країни «Багатого берега» (Коста-Рика), названа на честь святого Йосипа; оточена діючими вулканами і кавовими плантаціями." },
+    { cont: "americas", flag: "🇵🇦", c: "Панама", cap: "Панама", trap: "Сан-Хосе", hook: "Столиця однойменної країни біля входу в Панамський канал. Мовою індіанців слово «панама» означає «місце, де багато риби і метеликів»." },
+    { cont: "americas", flag: "🇬🇹", c: "Гватемала", cap: "Гватемала", trap: "Манагуа", hook: "Назва столиці й країни з мови ацтеків науатль перекладається як «Місце багатьох дерев»." },
+    { cont: "americas", flag: "🇭🇳", c: "Гондурас", cap: "Тегусігальпа", trap: "Сан-Сальвадор", hook: "Одна з найцікавіших назв світу! Мовою індіанців означає «Срібні пагорби» (поруч добували срібло)." },
+    { cont: "americas", flag: "🇳🇮", c: "Нікарагуа", cap: "Манагуа", trap: "Тегусігальпа", hook: "Мовою індіанців означає «Місце біля великої води» (стоїть на березі мальовничого озера Манагуа)." },
+    { cont: "americas", flag: "🇸🇻", c: "Сальвадор", cap: "Сан-Сальвадор", trap: "Бельмопан", hook: "Країна Сальвадор («Спаситель») ➔ столиця Сан-Сальвадор («Святий Спаситель»)." },
+    { cont: "americas", flag: "🇧🇿", c: "Беліз", cap: "Бельмопан", trap: "Беліз", hook: "Назва складена з двох слів: річки Беліз + індіанського племені мопан = Бельмопан (збудована вглибині суші після того, як ураган зруйнував стару столицю)." },
+    { cont: "americas", flag: "🇩🇴", c: "Домініканська Республіка", cap: "Санто-Домінго", trap: "Гавана", hook: "Найстаріше європейське місто в усій Америці — засноване рідним братом Христофора Колумба (Бартоломео Колумбом) у 1496 році!" },
+    { cont: "americas", flag: "🇭🇹", c: "Гаїті", cap: "Порт-о-Пренс", trap: "Санто-Домінго", hook: "Французькою означає «Порт Принца» (на честь корабля «Принц», який першим кинув якір у цій затоці)." },
+    { cont: "americas", flag: "🇧🇸", c: "Багамські Острови", cap: "Нассау", trap: "Кінгстон", hook: "Колишня «Піратська республіка» Карибського моря, названа на честь королівської династії Оранських-Нассау." },
+    { cont: "americas", flag: "🇧🇧", c: "Барбадос", cap: "Бриджтаун", trap: "Кастрі", hook: "Англійською «Bridge Town» — «Місто мосту» (англійці знайшли тут стародавній індіанський міст через річку)." },
+    { cont: "americas", flag: "🇹🇹", c: "Тринідад і Тобаго", cap: "Порт-оф-Спейн", trap: "Бриджтаун", hook: "З англійської буквально перекладається як «Порт Іспанії»." },
+    { cont: "americas", flag: "🇬🇾", c: "Гаяна", cap: "Джорджтаун", trap: "Парамарибо", hook: "Єдина англомовна країна Південної Америки; столиця названа на честь британського короля Георга III." },
+    { cont: "americas", flag: "🇸🇷", c: "Суринам", cap: "Парамарибо", trap: "Джорджтаун", hook: "Колишня нідерландська колонія в Південній Америці; назва походить від індіанського племені парамарибо («мешканці великої води»)." },
+    { cont: "americas", flag: "🇩🇲", c: "Домініка", cap: "Розо", trap: "Санто-Домінго", hook: "Не плутайте острів Домініка (столиця Розо — від французького «очерет») з Домініканською Республікою (Санто-Домінго)!" },
+    { cont: "americas", flag: "🇬🇩", c: "Гренада", cap: "Сент-Джорджес", trap: "Кастрі", hook: "Столиця «Острова спецій» (мускатного горіха) у кратері згаслого вулкана." },
+    { cont: "americas", flag: "🇱🇨", c: "Сент-Люсія", cap: "Кастрі", trap: "Розо", hook: "Названа на честь французького маршала де Кастрі." },
+    { cont: "americas", flag: "🇻🇨", c: "Сент-Вінсент і Гренадини", cap: "Кінгстаун", trap: "Кінгстон", hook: "Зверніть увагу на одну літеру: на Ямайці — Кінгстон, а на Сент-Вінсенті — Кінгстаун!" },
+    { cont: "americas", flag: "🇦🇬", c: "Антигуа і Барбуда", cap: "Сент-Джонс", trap: "Бастер", hook: "Карибська столиця, чий собор Святого Іоанна дав назву місту." },
+    { cont: "americas", flag: "🇰🇳", c: "Сент-Кіттс і Невіс", cap: "Бастер", trap: "Сент-Джонс", hook: "Найменша за площею і населенням держава всієї Америки; назва Бастер французькою означає «Низинна земля»." },
+
+    // --- АФРИКА (42) ---
+    { cont: "africa", flag: "🇪🇬", c: "Єгипет", cap: "Каїр", trap: "Александрія", hook: "Арабською «Аль-Кахіра» означає «Переможний». Найбільше місто Африки і всього арабського світу (~21 млн з передмістями), поруч з яким стоять піраміди Гізи." },
+    { cont: "africa", flag: "🇲🇦", c: "Марокко", cap: "Рабат", trap: "Касабланка", hook: "Пастка! Усі чули про Касабланку та Марракеш, але столиця Марокко — Рабат (від арабського «рібат» — укріплений монастир/табір на березі океану)." },
+    { cont: "africa", flag: "🇩🇿", c: "Алжир", cap: "Алжир", trap: "Туніс", hook: "Легко запам'ятати: країна і столиця мають однакову назву! Арабською «Ель-Джазаїр» означає «Острови»." },
+    { cont: "africa", flag: "🇹🇳", c: "Туніс", cap: "Туніс", trap: "Алжир", hook: "Ще одна країна-двійник: держава Туніс ➔ столиця Туніс. Поруч розташовані руїни стародавнього Карфагена." },
+    { cont: "africa", flag: "🇱🇾", c: "Лівія", cap: "Триполі", trap: "Бенгазі", hook: "З давньогрецької «Трі-поліс» буквально означає «Три міста» (об'єднання трьох фінікійських колоній на узбережжі Середземного моря)." },
+    { cont: "africa", flag: "🇿🇦", c: "ПАР (Південно-Африканська Республіка)", cap: "Преторія (Кейптаун, Блумфонтейн)", trap: "Йоганнесбург", hook: "Єдина країна світу з 3 офіційними столицями: уряд у Преторії, парламент у Кейптауні, верховний суд у Блумфонтейні (а найбільше місто Йоганнесбург узагалі не столиця!)." },
+    { cont: "africa", flag: "🇳🇬", c: "Нігерія", cap: "Абуджа", trap: "Лагос", hook: "Пастка! Лагос — гігантський мегаполіс на 16 млн людей, але у 1991 р. столицю перенесли в географічний центр країни — нове місто Абуджа біля скелі Зума." },
+    { cont: "africa", flag: "🇰🇪", c: "Кенія", cap: "Найробі", trap: "Момбаса", hook: "Мовою племені масаїв «Енкаре Найробі» означає «Місце прохолодної води». Єдиний мегаполіс світу, прямо на околиці якого розташований сафарі-парк із левами й жирафами!" },
+    { cont: "africa", flag: "🇪🇹", c: "Ефіопія", cap: "Аддис-Абеба", trap: "Найробі", hook: "Амхарською мовою романтично перекладається як «Нова квітка». Високогірна столиця Африканського Союзу (лежить на висоті 2400 м)." },
+    { cont: "africa", flag: "🇸🇳", c: "Сенегал", cap: "Дакар", trap: "Бамако", hook: "Найзахідніша точка всього Африканського континенту (мис Альмаді), куди фінішувало легендарне ралі «Париж — Дакар». Назва від тамариндового дерева." },
+    { cont: "africa", flag: "🇲🇬", c: "Мадагаскар", cap: "Антананаріву", trap: "Порт-Луї", hook: "Одна з найколоритніших назв світу! Малагасійською мовою означає «Місто тисячі (воїнів)»." },
+    { cont: "africa", flag: "🇹🇿", c: "Танзанія", cap: "Додома", trap: "Дар-ес-Салам", hook: "Пастка: найбільший порт — Дар-ес-Салам, але офіційна столиця в центрі країни — Додома (місцевою мовою гого означає «Воно потонуло»)." },
+    { cont: "africa", flag: "🇬🇭", c: "Гана", cap: "Аккра", trap: "Абуджа", hook: "Походить від слова «нкран» — «мурахи» (через величезну кількість термітників і мурашників у давнину)." },
+    { cont: "africa", flag: "🇨🇮", c: "Кот-д'Івуар", cap: "Ямусукро", trap: "Абіджан", hook: "Перенесена з Абіджана на батьківщину першого президента; тут побудовано найбільший за площею християнський собор у світі — Нотр-Дам-де-ла-Пе." },
+    { cont: "africa", flag: "🇨🇲", c: "Камерун", cap: "Яунде", trap: "Дуала", hook: "Місто на 7 пагорбах, назване на честь місцевого народу яунде (евoндо)." },
+    { cont: "africa", flag: "🇦🇴", c: "Ангола", cap: "Луанда", trap: "Лусака", hook: "Не переплутайте три схожі столиці Південної Африки: Ангола — Луанда, Замбія — Лусака, Малаві — Лілонгве!" },
+    { cont: "africa", flag: "🇿🇲", c: "Замбія", cap: "Лусака", trap: "Луанда", hook: "Названа на честь вождя племені ленже — Лусакаса. Лежить на високому плато (1300 м)." },
+    { cont: "africa", flag: "🇿🇼", c: "Зімбабве", cap: "Хараре", trap: "Габороне", hook: "Колишній Солсбері; названий на честь вождя Нехарава, чиє ім'я означає «Той, хто ніколи не спить»." },
+    { cont: "africa", flag: "🇲🇿", c: "Мозамбік", cap: "Мапуту", trap: "Хараре", hook: "Порт на березі Індійського океану, названий на честь річки Мапуту та давнього вождя Мапута." },
+    { cont: "africa", flag: "🇳🇦", c: "Намібія", cap: "Віндгук", trap: "Габороне", hook: "З мови африкаанс «Wind-hoek» буквально перекладається як «Вітряний куток»." },
+    { cont: "africa", flag: "🇧🇼", c: "Ботсвана", cap: "Габороне", trap: "Віндгук", hook: "Названа на честь верховного вождя племені тлоква — Габороне. Світовий центр видобутку алмазів." },
+    { cont: "africa", flag: "🇸🇩", c: "Судан", cap: "Хартум", trap: "Джуба", hook: "Арабською «Аль-Хартум» означає «Хобот слона» — бо вузька піщана коса в місці, де зливаються Білий Ніл і Голубий Ніл, точнісінько схожа на слонячий хобот!" },
+    { cont: "africa", flag: "🇸🇸", c: "Південний Судан", cap: "Джуба", trap: "Хартум", hook: "Наймолодша столиця світу — Південний Судан став незалежною державою у 2011 році." },
+    { cont: "africa", flag: "🇺🇬", c: "Уганда", cap: "Кампала", trap: "Кігалі", hook: "Походить від фрази «Касозі Ка Емпала» — «Пагорб антилоп імпала» (на березі найбільшого озера Африки — Вікторії)." },
+    { cont: "africa", flag: "🇷🇼", c: "Руанда", cap: "Кігалі", trap: "Кампала", hook: "Визнане найчистішим і найбезпечнішим містом Африки (тут ще з 2008 року повністю заборонені поліетиленові пакети!)." },
+    { cont: "africa", flag: "🇨🇩", c: "ДР Конго", cap: "Кіншаса", trap: "Браззавіль", hook: "Унікальний географічний рекорд: Кіншаса і Браззавіль (столиця сусідньої Республіки Конго) дивляться одна на одну через річку Конго — між ними лише 2 км води!" },
+    { cont: "africa", flag: "🇨🇬", c: "Республіка Конго", cap: "Браззавіль", trap: "Кіншаса", hook: "Названа на честь італо-французького дослідника П'єра Саворньяна де Бразза на правому березі річки Конго." },
+    { cont: "africa", flag: "🇲🇱", c: "Малі", cap: "Бамако", trap: "Ніамей", hook: "Мовою бамбара слово «Бамако» означає «Крокодиляча річка» (на річці Нігер)." },
+    { cont: "africa", flag: "🇳🇪", c: "Нігер", cap: "Ніамей", trap: "Абуджа", hook: "Не плутайте дві сусідні країни: Нігерія ➔ Абуджа, а Нігер ➔ Ніамей!" },
+    { cont: "africa", flag: "🇹🇩", c: "Чад", cap: "Нджамена", trap: "Бангі", hook: "Від арабського «Ам-Джамена» — «Місце відпочинку» поблизу озера Чад." },
+    { cont: "africa", flag: "🇸🇴", c: "Сомалі", cap: "Могадішо", trap: "Джибуті", hook: "З перської «Мак'ад-і-Шах» — «Резиденція Шаха» на березі Індійського океану." },
+    { cont: "africa", flag: "🇲🇺", c: "Маврикій", cap: "Порт-Луї", trap: "Вікторія", hook: "Острівна столиця в Індійському океані, названа французами на честь короля Людовика XV." },
+    { cont: "africa", flag: "🇸🇨", c: "Сейшельські Острови", cap: "Вікторія", trap: "Порт-Луї", hook: "Одна з найменших столиць світу на острові Мае, у центрі якої стоїть мініатюрна срібна копія лондонського Біг-Бена." },
+    { cont: "africa", flag: "🇬🇦", c: "Габон", cap: "Лібревіль", trap: "Фрітаун", hook: "Французькою «Libre-ville» буквально означає «Вільне місто» (засноване звільненими рабами на березі Гвінейської затоки)." },
+    { cont: "africa", flag: "🇸🇱", c: "Сьєрра-Леоне", cap: "Фрітаун", trap: "Монровія", hook: "Англійський брат Лібревіля: «Free-town» також перекладається як «Вільне місто»!" },
+    { cont: "africa", flag: "🇱🇷", c: "Ліберія", cap: "Монровія", trap: "Фрітаун", hook: "Єдина іноземна столиця світу, названа на честь американського президента — Джеймса Монро!" },
+    { cont: "africa", flag: "🇬🇳", c: "Гвінея", cap: "Конакрі", trap: "Бісау", hook: "Порт на довгому вузькому півострові Калум, де випадає понад 4000 мм опадів на рік." },
+    { cont: "africa", flag: "🇧🇫", c: "Буркіна-Фасо", cap: "Уагадугу", trap: "Бамако", hook: "Чемпіон серед назв, які обожнюють вимовляти діти: Уа-га-ду-гу!" },
+    { cont: "africa", flag: "🇹🇬", c: "Того", cap: "Ломе", trap: "Порто-Ново", hook: "Порт на березі Гвінейської затоки, чия назва мовою еве означає «невеликий ринок»." },
+    { cont: "africa", flag: "🇧🇯", c: "Бенін", cap: "Порто-Ново", trap: "Ломе", hook: "Португальською означає «Новий порт» (хоча уряд сидить у сусідньому місті Котону)." },
+    { cont: "africa", flag: "🇲🇼", c: "Малаві", cap: "Лілонгве", trap: "Лусака", hook: "Названа на честь річки Лілонгве поблизу великого озера Ньяса (Малаві)." },
+    { cont: "africa", flag: "🇲🇷", c: "Мавританія", cap: "Нуакшот", trap: "Дакар", hook: "Берберською мовою означає «Місце, де свистить вітер» (стоїть на межі пустелі Сахара і Атлантичного океану)." },
+
+    // --- АВСТРАЛІЯ І ОКЕАНІЯ (14) ---
+    { cont: "oceania", flag: "🇦🇺", c: "Австралія", cap: "Канберра", trap: "Сідней", hook: "Класична пастка! Сідней і Мельбурн так сперечалися, хто з них має бути столицею, що австралійці збудували нове місто рівно між ними — Канберру (мовою аборигенів — «Місце зустрічей»)." },
+    { cont: "oceania", flag: "🇳🇿", c: "Нова Зеландія", cap: "Веллінгтон", trap: "Окленд", hook: "Пастка! Найбільше місто — Окленд, а столиця — Веллінгтон. Це найпівденніша столиця світу (41° пд. ш.), яку називають «Вітряним Веллінгтоном»." },
+    { cont: "oceania", flag: "🇵🇬", c: "Папуа Нова Гвінея", cap: "Порт-Морсбі", trap: "Сува", hook: "Названа британським капітаном Джоном Морсбі на честь свого батька — адмірала Фейрфакса Морсбі." },
+    { cont: "oceania", flag: "🇫🇯", c: "Фіджі", cap: "Сува", trap: "Апіа", hook: "Найбільше місто південної частини Тихого океану (поза межами Австралії і Нової Зеландії) на острові Віті-Леву." },
+    { cont: "oceania", flag: "🇼🇸", c: "Самоа", cap: "Апіа", trap: "Сува", hook: "Полінезійська столиця на острові Уполу, де провів останні роки життя автор «Острова скарбів» Роберт Луїс Стівенсон." },
+    { cont: "oceania", flag: "🇹🇴", c: "Тонга", cap: "Нукуалофа", trap: "Апіа", hook: "Тонганською мовою поетично перекладається як «Оселя любові»." },
+    { cont: "oceania", flag: "🇻🇺", c: "Вануату", cap: "Порт-Віла", trap: "Хоніара", hook: "Місто в красивій кораловій бухті на острові Ефате у Меланезії." },
+    { cont: "oceania", flag: "🇸🇧", c: "Соломонові Острови", cap: "Хоніара", trap: "Порт-Віла", hook: "Назва походить від місцевого слова «нагоніара» — «місце, обдуване східним вітром» на острові Гуадалканал." },
+    { cont: "oceania", flag: "🇰🇮", c: "Кірибаті", cap: "Південна Тарава", trap: "Фунафуті", hook: "Столиця держави, яка першою на планеті зустрічає Новий рік і яка одночасно лежить у всіх 4 півкулях Землі!" },
+    { cont: "oceania", flag: "🇹🇻", c: "Тувалу", cap: "Фунафуті", trap: "Маджуро", hook: "Вузький кораловий атол завширшки від 20 до 400 метрів посеред Тихого океану." },
+    { cont: "oceania", flag: "🇲🇭", c: "Маршаллові Острови", cap: "Маджуро", trap: "Палікір", hook: "Кільцевий атол із 64 маленьких острівців, де дорога тягнеться тонкою смужкою між океаном і лагуною." },
+    { cont: "oceania", flag: "🇫🇲", c: "Федеративні Штати Мікронезії", cap: "Палікір", trap: "Маджуро", hook: "Невелике зелене містечко в тропічних горах вулканічного острова Понпеї." },
+    { cont: "oceania", flag: "🇵🇼", c: "Палау", cap: "Нгерулмуд", trap: "Корор", hook: "Найменш населена столиця суверенної держави у світі — тут офіційно проживає менше 300 жителів (як в одному багатоквартирному будинку)!" },
+    { cont: "oceania", flag: "🇳🇷", c: "Науру", cap: "Ярен (офіційної столиці немає)", trap: "Сува", hook: "Унікальний факт: крихітна острівна республіка Науру (21 км²) — єдина держава світу, яка взагалі не має офіційної столиці (уряд сидить в окрузі Ярен)!" }
+];
+
+let currentCont = "europe", pool = [], idx = 0, score = 0, mistakes = [];
+let playerName = "", isRetryRun = false;
+let timer = null, startSec = 0, elapsedSeconds = 0;
+let activeQDir = "c_to_cap";
+
+const contNames = {
+    "europe": "Європа",
+    "asia": "Азія",
+    "americas": "Америка",
+    "africa": "Африка",
+    "oceania": "Австралія і Океанія",
+    "blitz20": "Бліц 20",
+    "all": "Увесь світ"
+};
+
+window.onload = () => {
+    updateSoundBtn();
+    const savedName = localStorage.getItem("chem_last_player");
+    if (savedName) document.getElementById("player-name").value = savedName;
+    renderLeaderboard();
+};
+
+function setContinent(cont, btn) {
+    currentCont = cont;
+    document.querySelectorAll(".cont-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("lb-title").innerText = `🏆 Таблиця лідерів (${contNames[cont]})`;
+    renderLeaderboard();
+}
+
+function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
+
+function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+}
+
+function startQuiz(customList = null) {
+    const nameInput = document.getElementById("player-name").value.trim();
+    if (!nameInput) {
+        playRandomWrongSound();
+        alert("Будь ласка, введи своє ім'я перед початком!");
+        document.getElementById("player-name").focus();
+        return;
+    }
+    playerName = nameInput;
+    localStorage.setItem("chem_last_player", playerName);
+
+    if (customList) {
+        pool = shuffle(customList);
+        isRetryRun = true;
+    } else if (currentCont === "blitz20") {
+        pool = shuffle(capitalsDB).slice(0, 20);
+        isRetryRun = false;
+    } else if (currentCont === "all") {
+        pool = shuffle(capitalsDB);
+        isRetryRun = false;
+    } else {
+        pool = shuffle(capitalsDB.filter(x => x.cont === currentCont));
+        isRetryRun = false;
+    }
+
+    idx = 0; score = 0; mistakes = [];
+    document.getElementById("player-badge").innerText = `👤 ${playerName}`;
+    document.getElementById("setup-view").classList.add("hidden");
+    document.getElementById("res-view").classList.add("hidden");
+    document.getElementById("quiz-view").classList.remove("hidden");
+    
+    startSec = Date.now();
+    elapsedSeconds = 0;
+    document.getElementById("q-timer").innerText = "⏱ 00:00";
+    clearInterval(timer);
+    timer = setInterval(() => {
+        elapsedSeconds = Math.floor((Date.now() - startSec) / 1000);
+        document.getElementById("q-timer").innerText = `⏱ ${formatTime(elapsedSeconds)}`;
+    }, 500);
+    renderQ();
+}
+
+function getSmartWrongCapitals(item, dir) {
+    const sameCont = capitalsDB.filter(x => x.cont === item.cont && x.c !== item.c);
+    let wrongs = [];
+    if (dir === "c_to_cap") {
+        if (item.trap && item.trap !== item.cap) wrongs.push(item.trap);
+        const contCaps = shuffle(sameCont.map(x => x.cap)).filter(v => !wrongs.includes(v) && v !== item.cap);
+        wrongs.push(...contCaps);
+        return wrongs.slice(0, 3);
+    } else {
+        const contCountries = shuffle(sameCont.map(x => `${x.flag} ${x.c}`));
+        return contCountries.slice(0, 3);
+    }
+}
+
+function renderQ() {
+    document.getElementById("next-btn").classList.add("hidden");
+    document.getElementById("fact-box").classList.add("hidden");
+    const item = pool[idx];
+    const selDir = document.getElementById("dir-select").value;
+    activeQDir = selDir === "mix" ? (Math.random() < 0.5 ? "c_to_cap" : "cap_to_c") : selDir;
+
+    document.getElementById("q-progress").innerText = `${idx + 1} / ${pool.length}`;
+    
+    let correctAns = "";
+    if (activeQDir === "c_to_cap") {
+        document.getElementById("q-tag").innerText = "Яка столиця цієї держави?";
+        document.getElementById("q-text").innerText = `${item.flag} ${item.c}`;
+        correctAns = item.cap;
+    } else {
+        document.getElementById("q-tag").innerText = "Столицею якої держави є місто:";
+        document.getElementById("q-text").innerText = `🏛️ ${item.cap}`;
+        correctAns = `${item.flag} ${item.c}`;
+    }
+
+    const wrongs = getSmartWrongCapitals(item, activeQDir);
+    const opts = shuffle([correctAns, ...wrongs]);
+    const list = document.getElementById("opt-list");
+    list.innerHTML = "";
+    opts.forEach(opt => {
+        const b = document.createElement("button");
+        b.className = "opt-btn";
+        b.innerText = opt;
+        b.onclick = () => checkAns(b, opt, correctAns, item);
+        list.appendChild(b);
+    });
+}
+
+function checkAns(btn, sel, correctAns, item) {
+    document.querySelectorAll(".opt-btn").forEach(b => {
+        b.disabled = true;
+        if (b.innerText === correctAns) b.classList.add("correct");
+    });
+    if (sel === correctAns) {
+        score++;
+        playRandomSuccessSound();
+    } else {
+        btn.classList.add("wrong");
+        playRandomWrongSound();
+        mistakes.push({ item, sel, correctAns });
+    }
+    const fBox = document.getElementById("fact-box");
+    fBox.innerHTML = `💡 <b>${item.flag} ${item.c} — ${item.cap}:</b> ${item.hook}`;
+    fBox.classList.remove("hidden");
+    document.getElementById("next-btn").classList.remove("hidden");
+}
+
+function nextQ() {
+    idx++;
+    if (idx < pool.length) renderQ();
+    else finishQuiz();
+}
+
+async function finishQuiz() {
+    clearInterval(timer);
+    playFinishFanfare();
+    document.getElementById("quiz-view").classList.add("hidden");
+    document.getElementById("res-view").classList.remove("hidden");
+    document.getElementById("res-score").innerText = `${score} / ${pool.length}`;
+    document.getElementById("res-time").innerText = `⏱ Час: ${formatTime(elapsedSeconds)}`;
+
+    const recordMsg = document.getElementById("record-msg");
+    if (!isRetryRun) {
+        const status = await saveResult(playerName, score, pool.length, elapsedSeconds);
+        recordMsg.innerText = status;
+    } else {
+        recordMsg.innerText = "Роботу над помилками успішно завершено!";
+    }
+
+    const mBox = document.getElementById("mistakes-box");
+    const rBtn = document.getElementById("retry-btn");
+    if (mistakes.length === 0) {
+        mBox.classList.add("hidden");
+        rBtn.classList.add("hidden");
+    } else {
+        mBox.classList.remove("hidden");
+        rBtn.classList.remove("hidden");
+        mBox.innerHTML = mistakes.map(m =>
+            `<div style="margin-bottom:8px;">❌ <b>${m.item.flag} ${m.item.c} — ${m.item.cap}</b><br>Було обрано: <s>${m.sel}</s><br><span style="color:#475569;font-size:0.84rem;">💡 ${m.item.hook}</span></div>`
+        ).join("<hr style='border:0;border-top:1px solid #fecdd3;'>");
+    }
+}
+
+function getBoardKey() {
+    const dir = document.getElementById("dir-select").value;
+    return `cap_lb_${currentCont}_${dir}`;
+}
+
+async function fetchScores() {
+    const key = getBoardKey();
+    if (CLOUD_DB_URL) {
+        try {
+            const res = await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`) + `?t=${Date.now()}`);
+            const data = await res.json();
+            return data ? Object.values(data) : [];
+        } catch (e) { console.error(e); }
+    }
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+}
+
+async function saveResult(name, newScore, total, newTime) {
+    const key = getBoardKey();
+    let list = await fetchScores();
+    const normName = name.trim().toLowerCase();
+    
+    let existing = list.find(p => p.name.trim().toLowerCase() === normName);
+    let msg = "";
+
+    if (existing) {
+        existing.attempts = (existing.attempts || 1) + 1;
+        const isBetter = (newScore > existing.score) || (newScore === existing.score && newTime < existing.time);
+        if (isBetter) {
+            existing.score = newScore;
+            existing.time = newTime;
+            existing.total = total;
+            existing.name = name.trim();
+            msg = `🔥 Новий особистий рекорд! (Спроба №${existing.attempts})`;
+        } else {
+            msg = `Спроба №${existing.attempts} зарахована! Твій рекорд: ${existing.score}/${existing.total} за ${formatTime(existing.time)}`;
+        }
+    } else {
+        list.push({ name: name.trim(), score: newScore, total, time: newTime, attempts: 1 });
+        msg = "🎉 Тебе додано до таблиці лідерів!";
+    }
+
+    localStorage.setItem(key, JSON.stringify(list));
+
+    if (CLOUD_DB_URL) {
+        try {
+            await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(list)
+            });
+        } catch (e) { console.error(e); }
+    }
+    return msg;
+}
+
+async function renderLeaderboard(manualRefresh = false) {
+    const container = document.getElementById("lb-content");
+    if (manualRefresh) {
+        container.innerHTML = `<div style="text-align:center;color:#64748b;padding:12px;">⏳ Оновлення даних...</div>`;
+    }
+    let list = await fetchScores();
+
+    if (list.length === 0) {
+        container.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:12px;">Ще ніхто не проходив цей континент. Будь першим!</div>`;
+        return;
+    }
+
+    list.sort((a, b) => (b.score - a.score) || (a.time - b.time));
+
+    const medals = ["🥇", "🥈", "🥉"];
+    let html = `<table class="lb-table">
+        <thead><tr><th>#</th><th>Учень</th><th>Бали</th><th>Час</th><th>Спроб</th></tr></thead><tbody>`;
+    
+    list.slice(0, 15).forEach((p, idx) => {
+        const rank = medals[idx] || (idx + 1);
+        html += `<tr>
+            <td>${rank}</td>
+            <td>${p.name}</td>
+            <td><b>${p.score}</b>/${p.total}</td>
+            <td>${formatTime(p.time)}</td>
+            <td><span class="badge-attempts">${p.attempts || 1}</span></td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+function retryMistakes() { startQuiz(mistakes.map(m => m.item)); }
+
+function goHome() {
+    document.getElementById("res-view").classList.add("hidden");
+    document.getElementById("setup-view").classList.remove("hidden");
+    renderLeaderboard();
+}
+
+let heartClicks = 0;
+let heartTimer = null;
+
+async function handleHeartClick() {
+    heartClicks++;
+    clearTimeout(heartTimer);
+    heartTimer = setTimeout(() => { heartClicks = 0; }, 1200);
+
+    if (heartClicks >= 5) {
+        heartClicks = 0;
+        const pin = prompt("🔒 Адмін-панель\nВведіть пароль доступу:");
+        if (!pin) return;
+
+        if (btoa(pin.trim()) === "MTEwMw==") {
+            const key = getBoardKey();
+            let list = await fetchScores();
+            const names = list.map(p => p.name).join(", ") || "таблиця порожня";
+
+            const target = prompt(
+                `🛠️ Управління таблицею:\nЗараз у списку: ${names}\n\n` +
+                `• Введіть ІМ'Я гравця, щоб видалити лише його\n` +
+                `• Введіть ALL (або ВСІ), щоб очистити всю таблицю:`
+            );
+            if (!target) return;
+
+            const cleanTarget = target.trim().toLowerCase();
+
+            if (cleanTarget === "all" || cleanTarget === "всі") {
+                localStorage.removeItem(key);
+                if (CLOUD_DB_URL) {
+                    try {
+                        await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), { method: "DELETE" });
+                    } catch (e) { console.error(e); }
+                }
+                renderLeaderboard();
+                alert("✅ Всю таблицю лідерів цього континенту очищено!");
+            } else {
+                const newList = list.filter(p => p.name.trim().toLowerCase() !== cleanTarget);
+                if (newList.length === list.length) {
+                    alert(`⚠️ Гравця з ім'ям "${target}" не знайдено у поточній таблиці.`);
+                    return;
+                }
+                localStorage.setItem(key, JSON.stringify(newList));
+                if (CLOUD_DB_URL) {
+                    try {
+                        await fetch(CLOUD_DB_URL.replace(".json", `/${key}.json`), {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(newList)
+                        });
+                    } catch (e) { console.error(e); }
+                }
+                renderLeaderboard();
+                alert(`✅ Гравця "${target}" видалено з таблиці!`);
+            }
+        } else {
+            playRandomWrongSound();
+            alert("⛔ Невірний пароль! Спробу зафіксовано 😉");
+        }
+    }
+}
+</script>
+</body>
+</html>
